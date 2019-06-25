@@ -15,8 +15,8 @@ package tech.pegasys.pantheon.ethereum.jsonrpc;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import tech.pegasys.pantheon.ethereum.p2p.api.PeerConnection;
-import tech.pegasys.pantheon.ethereum.p2p.wire.PeerInfo;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.connections.PeerConnection;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.PeerInfo;
 
 import java.net.InetSocketAddress;
 
@@ -30,7 +30,7 @@ public class MockPeerConnection {
       final InetSocketAddress localAddress,
       final InetSocketAddress remoteAddress) {
     PeerConnection peerConnection = mock(PeerConnection.class);
-    when(peerConnection.getPeer()).thenReturn(peerInfo);
+    when(peerConnection.getPeerInfo()).thenReturn(peerInfo);
     when(peerConnection.getLocalAddress()).thenReturn(localAddress);
     when(peerConnection.getRemoteAddress()).thenReturn(remoteAddress);
 

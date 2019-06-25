@@ -13,7 +13,8 @@
 package tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods;
 
 import tech.pegasys.pantheon.ethereum.core.Hash;
-import tech.pegasys.pantheon.ethereum.core.PendingTransactions;
+import tech.pegasys.pantheon.ethereum.eth.transactions.PendingTransactions;
+import tech.pegasys.pantheon.ethereum.jsonrpc.RpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.parameters.JsonRpcParameter;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.queries.BlockchainQueries;
@@ -43,7 +44,7 @@ public class EthGetTransactionByHash implements JsonRpcMethod {
 
   @Override
   public String getName() {
-    return "eth_getTransactionByHash";
+    return RpcMethod.ETH_GET_TRANSACTION_BY_HASH.getMethodName();
   }
 
   @Override
@@ -58,13 +59,9 @@ public class EthGetTransactionByHash implements JsonRpcMethod {
   }
 
   private Object getResult(final Hash hash) {
-    final Optional<Object> transactionCompleteResult =
-        blockchain.transactionByHash(hash).map(TransactionCompleteResult::new);
-    return transactionCompleteResult.orElseGet(
-        () ->
-            pendingTransactions
-                .getTransactionByHash(hash)
-                .map(TransactionPendingResult::new)
-                .orElse(null));
+    final Optional<Object> transactionPendingResult =
+        pendingTransactions.getTransactionByHash(hash).map(TransactionPendingResult::new);
+    return transactionPendingResult.orElseGet(
+        () -> blockchain.transactionByHash(hash).map(TransactionCompleteResult::new).orElse(null));
   }
 }

@@ -55,12 +55,17 @@ to ensure the Markdown is correctly understood and displayed.
 
 To preview Pantheon documentation locally: 
 
-- [Install Python](https://www.mkdocs.org/#installing-python)
+- [Install Python 3.x](https://www.mkdocs.org/#installing-python) (see [readthedocs.yml](readthedocs.yml) file for 
+the exact version)
 - [Install PIP](https://www.mkdocs.org/#installing-pip)
 - Install all the required dependencies :
   ```bash
   pip install -r docs/requirements.txt
   ```
+>**note**
+> If pip raises errors like `Could not find a version that satisfies the requirement` when executing
+`pip`, you may have to use the `pip3` commend to explicitely run Python 3 specific pip depending if 
+you already have another python version installed or not and in what order you installed them.
 - Run the following command in the project directory :
   ```bash
   mkdocs serve
@@ -70,7 +75,14 @@ looks like `[I 190206 18:48:47 server:298] Serving on http://127.0.0.1:8000`,
 here connect to [http://127.0.0.1:8000]
 
 You can let this doc server run while you work on the doc, it updates the local website
-automatically when you save changes in your Markdown files. 
+automatically when you save changes in your Markdown files.
+
+>**Important**
+> 
+> Run `python --version` to make sure you are using version indicated in [readthedocs.yml](readthedocs.yml) file.
+>
+> If you are updating from a previous Python version you will also have to run pip install again and 
+check your path.
 
 ## Formatting Markdown For Doc Site
 

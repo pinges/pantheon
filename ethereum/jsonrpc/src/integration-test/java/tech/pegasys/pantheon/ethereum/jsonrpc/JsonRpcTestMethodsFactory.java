@@ -24,22 +24,24 @@ import tech.pegasys.pantheon.ethereum.core.Block;
 import tech.pegasys.pantheon.ethereum.core.BlockImporter;
 import tech.pegasys.pantheon.ethereum.core.PrivacyParameters;
 import tech.pegasys.pantheon.ethereum.core.Synchronizer;
-import tech.pegasys.pantheon.ethereum.core.TransactionPool;
+import tech.pegasys.pantheon.ethereum.eth.transactions.TransactionPool;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.filter.FilterIdGenerator;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.filter.FilterManager;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.filter.FilterRepository;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods.JsonRpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.queries.BlockchainQueries;
+import tech.pegasys.pantheon.ethereum.jsonrpc.websocket.WebSocketConfiguration;
 import tech.pegasys.pantheon.ethereum.mainnet.HeaderValidationMode;
 import tech.pegasys.pantheon.ethereum.mainnet.MainnetProtocolSchedule;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSpec;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.ethereum.permissioning.AccountWhitelistController;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.permissioning.AccountLocalConfigPermissioningController;
 import tech.pegasys.pantheon.ethereum.permissioning.NodeLocalConfigPermissioningController;
 import tech.pegasys.pantheon.ethereum.worldstate.WorldStateArchive;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
 import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
+import tech.pegasys.pantheon.metrics.prometheus.MetricsConfiguration;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -83,11 +85,14 @@ public class JsonRpcTestMethodsFactory {
             blockchainQueries, transactionPool, new FilterIdGenerator(), new FilterRepository());
     final EthHashMiningCoordinator miningCoordinator = mock(EthHashMiningCoordinator.class);
     final MetricsSystem metricsSystem = new NoOpMetricsSystem();
-    final Optional<AccountWhitelistController> accountWhitelistController =
-        Optional.of(mock(AccountWhitelistController.class));
+    final Optional<AccountLocalConfigPermissioningController> accountWhitelistController =
+        Optional.of(mock(AccountLocalConfigPermissioningController.class));
     final Optional<NodeLocalConfigPermissioningController> nodeWhitelistController =
         Optional.of(mock(NodeLocalConfigPermissioningController.class));
     final PrivacyParameters privacyParameters = mock(PrivacyParameters.class);
+    final JsonRpcConfiguration jsonRpcConfiguration = mock(JsonRpcConfiguration.class);
+    final WebSocketConfiguration webSocketConfiguration = mock(WebSocketConfiguration.class);
+    final MetricsConfiguration metricsConfiguration = mock(MetricsConfiguration.class);
 
     return new JsonRpcMethodsFactory()
         .methods(
@@ -106,6 +111,9 @@ public class JsonRpcTestMethodsFactory {
             accountWhitelistController,
             nodeWhitelistController,
             RpcApis.DEFAULT_JSON_RPC_APIS,
-            privacyParameters);
+            privacyParameters,
+            jsonRpcConfiguration,
+            webSocketConfiguration,
+            metricsConfiguration);
   }
 }

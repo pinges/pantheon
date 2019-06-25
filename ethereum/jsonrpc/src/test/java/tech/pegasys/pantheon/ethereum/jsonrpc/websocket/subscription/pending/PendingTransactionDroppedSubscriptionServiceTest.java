@@ -103,7 +103,13 @@ public class PendingTransactionDroppedSubscriptionServiceTest {
     when(subscriptionManager.subscriptionsOfType(any(), any()))
         .thenReturn(
             Arrays.stream(subscriptionsIds)
-                .mapToObj(id -> new Subscription(id, SubscriptionType.DROPPED_PENDING_TRANSACTIONS))
+                .mapToObj(
+                    id ->
+                        new Subscription(
+                            id,
+                            "conn",
+                            SubscriptionType.DROPPED_PENDING_TRANSACTIONS,
+                            Boolean.FALSE))
                 .collect(Collectors.toList()));
   }
 }

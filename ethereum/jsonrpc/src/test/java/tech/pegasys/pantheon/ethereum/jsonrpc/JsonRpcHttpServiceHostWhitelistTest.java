@@ -20,19 +20,23 @@ import tech.pegasys.pantheon.config.StubGenesisConfigOptions;
 import tech.pegasys.pantheon.ethereum.blockcreation.EthHashMiningCoordinator;
 import tech.pegasys.pantheon.ethereum.core.PrivacyParameters;
 import tech.pegasys.pantheon.ethereum.core.Synchronizer;
-import tech.pegasys.pantheon.ethereum.core.TransactionPool;
 import tech.pegasys.pantheon.ethereum.eth.EthProtocol;
+import tech.pegasys.pantheon.ethereum.eth.transactions.TransactionPool;
+import tech.pegasys.pantheon.ethereum.jsonrpc.health.HealthService;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.filter.FilterManager;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods.JsonRpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.queries.BlockchainQueries;
+import tech.pegasys.pantheon.ethereum.jsonrpc.websocket.WebSocketConfiguration;
 import tech.pegasys.pantheon.ethereum.mainnet.MainnetProtocolSchedule;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.ethereum.p2p.wire.Capability;
-import tech.pegasys.pantheon.ethereum.permissioning.AccountWhitelistController;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.Capability;
+import tech.pegasys.pantheon.ethereum.permissioning.AccountLocalConfigPermissioningController;
 import tech.pegasys.pantheon.ethereum.permissioning.NodeLocalConfigPermissioningController;
 import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
+import tech.pegasys.pantheon.metrics.prometheus.MetricsConfiguration;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,16 +97,21 @@ public class JsonRpcHttpServiceHostWhitelistTest {
                     blockchainQueries,
                     synchronizer,
                     MainnetProtocolSchedule.fromConfig(
-                        new StubGenesisConfigOptions().constantinopleBlock(0).chainId(CHAIN_ID)),
+                        new StubGenesisConfigOptions()
+                            .constantinopleBlock(0)
+                            .chainId(BigInteger.valueOf(CHAIN_ID))),
                     mock(FilterManager.class),
                     mock(TransactionPool.class),
                     mock(EthHashMiningCoordinator.class),
                     new NoOpMetricsSystem(),
                     supportedCapabilities,
-                    Optional.of(mock(AccountWhitelistController.class)),
+                    Optional.of(mock(AccountLocalConfigPermissioningController.class)),
                     Optional.of(mock(NodeLocalConfigPermissioningController.class)),
                     JSON_RPC_APIS,
-                    mock(PrivacyParameters.class)));
+                    mock(PrivacyParameters.class),
+                    mock(JsonRpcConfiguration.class),
+                    mock(WebSocketConfiguration.class),
+                    mock(MetricsConfiguration.class)));
     service = createJsonRpcHttpService();
     service.start().join();
 
@@ -112,7 +121,13 @@ public class JsonRpcHttpServiceHostWhitelistTest {
 
   private JsonRpcHttpService createJsonRpcHttpService() throws Exception {
     return new JsonRpcHttpService(
-        vertx, folder.newFolder().toPath(), jsonRpcConfig, new NoOpMetricsSystem(), rpcMethods);
+        vertx,
+        folder.newFolder().toPath(),
+        jsonRpcConfig,
+        new NoOpMetricsSystem(),
+        rpcMethods,
+        HealthService.ALWAYS_HEALTHY,
+        HealthService.ALWAYS_HEALTHY);
   }
 
   private static JsonRpcConfiguration createJsonRpcConfig() {

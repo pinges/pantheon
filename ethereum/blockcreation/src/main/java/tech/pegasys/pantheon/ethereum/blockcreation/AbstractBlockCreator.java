@@ -18,18 +18,20 @@ import tech.pegasys.pantheon.ethereum.core.Block;
 import tech.pegasys.pantheon.ethereum.core.BlockBody;
 import tech.pegasys.pantheon.ethereum.core.BlockHeader;
 import tech.pegasys.pantheon.ethereum.core.BlockHeaderBuilder;
+import tech.pegasys.pantheon.ethereum.core.BlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.core.Hash;
 import tech.pegasys.pantheon.ethereum.core.MutableAccount;
 import tech.pegasys.pantheon.ethereum.core.MutableWorldState;
-import tech.pegasys.pantheon.ethereum.core.PendingTransactions;
 import tech.pegasys.pantheon.ethereum.core.ProcessableBlockHeader;
 import tech.pegasys.pantheon.ethereum.core.SealableBlockHeader;
 import tech.pegasys.pantheon.ethereum.core.Wei;
 import tech.pegasys.pantheon.ethereum.core.WorldUpdater;
+import tech.pegasys.pantheon.ethereum.eth.transactions.PendingTransactions;
 import tech.pegasys.pantheon.ethereum.mainnet.BodyValidation;
 import tech.pegasys.pantheon.ethereum.mainnet.DifficultyCalculator;
 import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockProcessor.TransactionReceiptFactory;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
+import tech.pegasys.pantheon.ethereum.mainnet.ScheduleBasedBlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.mainnet.TransactionProcessor;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
 import tech.pegasys.pantheon.util.uint.UInt256;
@@ -61,6 +63,7 @@ public abstract class AbstractBlockCreator<C> implements AsyncBlockCreator {
   private final PendingTransactions pendingTransactions;
   protected final ProtocolContext<C> protocolContext;
   protected final ProtocolSchedule<C> protocolSchedule;
+  protected final BlockHeaderFunctions blockHeaderFunctions;
   private final Wei minTransactionGasPrice;
   private final Address miningBeneficiary;
   protected final BlockHeader parentHeader;
@@ -86,6 +89,7 @@ public abstract class AbstractBlockCreator<C> implements AsyncBlockCreator {
     this.minTransactionGasPrice = minTransactionGasPrice;
     this.miningBeneficiary = miningBeneficiary;
     this.parentHeader = parentHeader;
+    blockHeaderFunctions = ScheduleBasedBlockHeaderFunctions.create(protocolSchedule);
   }
 
   /**

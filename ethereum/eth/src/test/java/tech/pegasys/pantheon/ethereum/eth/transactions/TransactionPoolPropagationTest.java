@@ -17,7 +17,7 @@ import tech.pegasys.pantheon.crypto.SECP256K1.PrivateKey;
 import tech.pegasys.pantheon.ethereum.core.Transaction;
 import tech.pegasys.pantheon.ethereum.core.TransactionTestFixture;
 import tech.pegasys.pantheon.ethereum.p2p.config.DiscoveryConfiguration;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.util.bytes.Bytes32;
 
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,6 @@ public class TransactionPoolPropagationTest {
 
   /** Helper to do common setup tasks. */
   private void initTest(final TestNodeList txNodes) throws Exception {
-    txNodes.startNetworks();
     txNodes.connectAndAssertAll();
     txNodes.logPeerConnections();
     txNodes.assertPeerCounts();

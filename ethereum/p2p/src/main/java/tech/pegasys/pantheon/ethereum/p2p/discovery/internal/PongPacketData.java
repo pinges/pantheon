@@ -12,7 +12,7 @@
  */
 package tech.pegasys.pantheon.ethereum.p2p.discovery.internal;
 
-import tech.pegasys.pantheon.ethereum.p2p.peers.Endpoint;
+import tech.pegasys.pantheon.ethereum.p2p.discovery.Endpoint;
 import tech.pegasys.pantheon.ethereum.rlp.RLPInput;
 import tech.pegasys.pantheon.ethereum.rlp.RLPOutput;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
@@ -44,7 +44,7 @@ public class PongPacketData implements PacketData {
     final Endpoint to = Endpoint.decodeStandalone(in);
     final BytesValue hash = in.readBytesValue();
     final long expiration = in.readLongScalar();
-    in.leaveList();
+    in.leaveListLenient();
     return new PongPacketData(to, hash, expiration);
   }
 

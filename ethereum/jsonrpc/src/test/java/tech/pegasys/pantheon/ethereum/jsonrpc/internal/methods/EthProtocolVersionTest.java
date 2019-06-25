@@ -18,7 +18,7 @@ import tech.pegasys.pantheon.ethereum.eth.EthProtocol;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
-import tech.pegasys.pantheon.ethereum.p2p.wire.Capability;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.Capability;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,7 +43,7 @@ public class EthProtocolVersionTest {
     setupSupportedEthProtocols();
 
     final JsonRpcRequest request = requestWithParams();
-    final JsonRpcResponse expectedResponse = new JsonRpcSuccessResponse(request.getId(), 63);
+    final JsonRpcResponse expectedResponse = new JsonRpcSuccessResponse(request.getId(), "0x3f");
     final JsonRpcResponse actualResponse = method.response(request);
     assertThat(actualResponse).isEqualToComparingFieldByField(expectedResponse);
   }
@@ -69,7 +69,7 @@ public class EthProtocolVersionTest {
     method = new EthProtocolVersion(supportedCapabilities);
 
     final JsonRpcRequest request = requestWithParams();
-    final JsonRpcResponse expectedResponse = new JsonRpcSuccessResponse(request.getId(), 63);
+    final JsonRpcResponse expectedResponse = new JsonRpcSuccessResponse(request.getId(), "0x3f");
     final JsonRpcResponse actualResponse = method.response(request);
     assertThat(actualResponse).isEqualToComparingFieldByField(expectedResponse);
   }

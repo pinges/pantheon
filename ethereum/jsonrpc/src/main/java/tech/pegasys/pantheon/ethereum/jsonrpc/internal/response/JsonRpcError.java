@@ -25,10 +25,11 @@ public enum JsonRpcError {
   METHOD_NOT_FOUND(-32601, "Method not found"),
   INVALID_PARAMS(-32602, "Invalid params"),
   INTERNAL_ERROR(-32603, "Internal error"),
+  METHOD_NOT_ENABLED(-32604, "Method not enabled"),
 
   // P2P related errors
   P2P_DISABLED(-32000, "P2P has been disabled. This functionality is not available"),
-  ENODE_NOT_AVAILABLE(-32000, "Enode URL not available"),
+  P2P_NETWORK_NOT_RUNNING(-32000, "P2P network is not running"),
 
   // Filter & Subscription Errors
   FILTER_NOT_FOUND(-32000, "Filter not found"),
@@ -70,7 +71,8 @@ public enum JsonRpcError {
   NODE_WHITELIST_DUPLICATED_ENTRY(-32000, "Request contains duplicate nodes"),
   NODE_WHITELIST_EXISTING_ENTRY(-32000, "Cannot add an existing node to whitelist"),
   NODE_WHITELIST_MISSING_ENTRY(-32000, "Cannot remove an absent node from whitelist"),
-  NODE_WHITELIST_BOOTNODE_CANNOT_BE_REMOVED(-32000, "Cannot remove a bootnode from whitelist"),
+  NODE_WHITELIST_FIXED_NODE_CANNOT_BE_REMOVED(
+      -32000, "Cannot remove a fixed node (bootnode or static node) from whitelist"),
 
   // Permissioning/persistence errors
   WHITELIST_PERSIST_FAILURE(
@@ -89,12 +91,37 @@ public enum JsonRpcError {
 
   // Private transaction errors
   ENCLAVE_ERROR(-50100, "Error communicating with enclave"),
+  PRIVATE_NONCE_TOO_LOW(-50100, "Private transaction nonce too low"),
+  INCORRECT_PRIVATE_NONCE(-50100, "Private transaction nonce is incorrect"),
   UNIMPLEMENTED_PRIVATE_TRANSACTION_TYPE(-50100, "Unimplemented private transaction type"),
   PRIVATE_TRANSACTION_RECEIPT_ERROR(-50100, "Error generating the private transaction receipt"),
+  PRIVACY_NOT_ENABLED(-50100, "Privacy is not enabled to get the precompiled address"),
   VALUE_NOT_ZERO(-50100, "We cannot transfer ether in private transaction yet."),
   DECODE_ERROR(-50100, "Unable to decode the private signed raw transaction"),
 
-  CANT_CONNECT_TO_LOCAL_PEER(-32100, "Cannot add local node as peer.");
+  CANT_CONNECT_TO_LOCAL_PEER(-32100, "Cannot add local node as peer."),
+
+  // Invalid input errors
+  ENODE_ID_INVALID(
+      -32000,
+      "Invalid node ID: node ID must have exactly 128 hexadecimal characters and should not include any '0x' hex prefix."),
+
+  // Enclave errors
+  NODE_MISSING_PEER_URL(-50200, "NodeMissingPeerUrl"),
+  NODE_PUSHING_TO_PEER(-50200, "NodePushingToPeer"),
+  NODE_PROPAGATING_TO_ALL_PEERS(-50200, "NodePropagatingToAllPeers"),
+  NO_SENDER_KEY(-50200, "NoSenderKey"),
+  INVALID_PAYLOAD(-50200, "InvalidPayload"),
+  ENCLAVE_CREATE_KEY_PAIR(-50200, "EnclaveCreateKeyPair"),
+  ENCLAVE_DECODE_PUBLIC_KEY(-50200, "EnclaveDecodePublicKey"),
+  ENCLAVE_DECRYPT_WRONG_PRIVATE_KEY(-50200, "EnclaveDecryptWrongPrivateKey"),
+  ENCLAVE_ENCRYPT_COMBINE_KEYS(-50200, "EnclaveEncryptCombineKeys"),
+  ENCLAVE_MISSING_PRIVATE_KEY_PASSWORD(-50200, "EnclaveMissingPrivateKeyPasswords"),
+  ENCLAVE_NO_MATCHING_PRIVATE_KEY(-50200, "EnclaveNoMatchingPrivateKey"),
+  ENCLAVE_NOT_PAYLOAD_OWNER(-50200, "EnclaveNotPayloadOwner"),
+  ENCLAVE_UNSUPPORTED_PRIVATE_KEY_TYPE(-50200, "EnclaveUnsupportedPrivateKeyType"),
+  ENCLAVE_STORAGE_DECRYPT(-50200, "EnclaveStorageDecrypt"),
+  ENCLAVE_PRIVACY_GROUP_CREATION(-50200, "EnclavePrivacyGroupIdCreation");
 
   private final int code;
   private final String message;
@@ -118,7 +145,7 @@ public enum JsonRpcError {
   public static JsonRpcError fromJson(
       @JsonProperty("code") final int code, @JsonProperty("message") final String message) {
     for (final JsonRpcError error : JsonRpcError.values()) {
-      if (error.getCode() == code) {
+      if (error.code == code && error.message.equals(message)) {
         return error;
       }
     }

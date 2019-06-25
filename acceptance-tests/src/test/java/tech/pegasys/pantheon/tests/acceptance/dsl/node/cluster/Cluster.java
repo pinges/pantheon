@@ -13,19 +13,18 @@
 package tech.pegasys.pantheon.tests.acceptance.dsl.node.cluster;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
-import tech.pegasys.pantheon.tests.acceptance.dsl.jsonrpc.Net;
+import tech.pegasys.pantheon.tests.acceptance.dsl.condition.net.NetConditions;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.PantheonNode;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.PantheonNodeRunner;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.RunnableNode;
-import tech.pegasys.pantheon.tests.acceptance.dsl.waitcondition.WaitCondition;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -39,19 +38,27 @@ public class Cluster implements AutoCloseable {
   private static final Logger LOG = LogManager.getLogger();
 
   private final Map<String, RunnableNode> nodes = new HashMap<>();
-  private final PantheonNodeRunner pantheonNodeRunner = PantheonNodeRunner.instance();
-  private final Net net;
+  private final PantheonNodeRunner pantheonNodeRunner;
+  private final NetConditions net;
   private final ClusterConfiguration clusterConfiguration;
   private List<? extends RunnableNode> originalNodes = emptyList();
-  private List<URI> bootnodes = emptyList();
+  private List<URI> bootnodes = new ArrayList<>();
 
-  public Cluster(final Net net) {
-    this(new ClusterConfigurationBuilder().build(), net);
+  public Cluster(final NetConditions net) {
+    this(new ClusterConfigurationBuilder().build(), net, PantheonNodeRunner.instance());
   }
 
-  public Cluster(final ClusterConfiguration clusterConfiguration, final Net net) {
+  public Cluster(final ClusterConfiguration clusterConfiguration, final NetConditions net) {
+    this(clusterConfiguration, net, PantheonNodeRunner.instance());
+  }
+
+  public Cluster(
+      final ClusterConfiguration clusterConfiguration,
+      final NetConditions net,
+      final PantheonNodeRunner pantheonNodeRunner) {
     this.clusterConfiguration = clusterConfiguration;
     this.net = net;
+    this.pantheonNodeRunner = pantheonNodeRunner;
   }
 
   public void start(final Node... nodes) {
@@ -71,6 +78,7 @@ public class Cluster implements AutoCloseable {
     }
     this.originalNodes = nodes;
     this.nodes.clear();
+    this.bootnodes.clear();
     nodes.forEach(node -> this.nodes.put(node.getName(), node));
 
     final Optional<? extends RunnableNode> bootnode = selectAndStartBootnode(nodes);
@@ -96,9 +104,13 @@ public class Cluster implements AutoCloseable {
             .filter(node -> node.getConfiguration().isDiscoveryEnabled())
             .findFirst();
 
-    bootnode.ifPresent((b) -> LOG.info("Selected node {} as bootnode", b.getName()));
-    bootnode.ifPresent(this::startNode);
-    bootnodes = bootnode.map(node -> singletonList(node.enodeUrl())).orElse(emptyList());
+    bootnode.ifPresent(
+        b -> {
+          LOG.info("Selected node {} as bootnode", b.getName());
+          startNode(b, true);
+          bootnodes.add(b.enodeUrl());
+        });
+
     return bootnode;
   }
 
@@ -115,12 +127,15 @@ public class Cluster implements AutoCloseable {
   }
 
   private void startNode(final RunnableNode node) {
-    if (node.getConfiguration().bootnodes().isEmpty()) {
-      node.getConfiguration().bootnodes(bootnodes);
-    }
+    this.startNode(node, false);
+  }
+
+  private void startNode(final RunnableNode node, final boolean isBootNode) {
+    node.getConfiguration().setBootnodes(isBootNode ? emptyList() : bootnodes);
+
     node.getConfiguration()
-        .genesisConfigProvider()
-        .createGenesisConfig(originalNodes)
+        .getGenesisConfigProvider()
+        .create(originalNodes)
         .ifPresent(node.getConfiguration()::setGenesisConfig);
     LOG.info(
         "Starting node {} (id = {}...{})",
@@ -131,10 +146,15 @@ public class Cluster implements AutoCloseable {
   }
 
   public void stop() {
+    // stops nodes but do not shutdown pantheonNodeRunner
     for (final RunnableNode node : nodes.values()) {
-      node.stop();
+      if (node instanceof PantheonNode) {
+        pantheonNodeRunner.stopNode(
+            (PantheonNode) node); // pantheonNodeRunner.stopNode also calls node.stop
+      } else {
+        node.stop();
+      }
     }
-    pantheonNodeRunner.shutdown();
   }
 
   public void stopNode(final PantheonNode node) {
@@ -143,6 +163,7 @@ public class Cluster implements AutoCloseable {
 
   @Override
   public void close() {
+    stop();
     for (final RunnableNode node : nodes.values()) {
       node.close();
     }
@@ -159,11 +180,5 @@ public class Cluster implements AutoCloseable {
     nodes.values().stream()
         .filter(node -> pantheonNodeRunner.isActive(node.getName()))
         .forEach(condition::verify);
-  }
-
-  public void waitUntil(final WaitCondition condition) {
-    for (final Node node : nodes.values()) {
-      node.waitUntil(condition);
-    }
   }
 }

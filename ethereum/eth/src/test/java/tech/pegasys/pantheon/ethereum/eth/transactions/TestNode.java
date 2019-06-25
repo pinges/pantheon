@@ -14,6 +14,9 @@ package tech.pegasys.pantheon.ethereum.eth.transactions;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.util.Preconditions.checkNotNull;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static tech.pegasys.pantheon.ethereum.core.InMemoryStorageProvider.createInMemoryBlockchain;
 import static tech.pegasys.pantheon.ethereum.core.InMemoryStorageProvider.createInMemoryWorldStateArchive;
 
@@ -22,29 +25,26 @@ import tech.pegasys.pantheon.crypto.SECP256K1;
 import tech.pegasys.pantheon.ethereum.ProtocolContext;
 import tech.pegasys.pantheon.ethereum.chain.GenesisState;
 import tech.pegasys.pantheon.ethereum.chain.MutableBlockchain;
-import tech.pegasys.pantheon.ethereum.core.BlockHashFunction;
-import tech.pegasys.pantheon.ethereum.core.PendingTransactions;
+import tech.pegasys.pantheon.ethereum.core.BlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.core.Transaction;
-import tech.pegasys.pantheon.ethereum.core.TransactionPool;
 import tech.pegasys.pantheon.ethereum.difficulty.fixed.FixedDifficultyProtocolSchedule;
 import tech.pegasys.pantheon.ethereum.eth.EthProtocol;
 import tech.pegasys.pantheon.ethereum.eth.EthereumWireProtocolConfiguration;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthContext;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthProtocolManager;
+import tech.pegasys.pantheon.ethereum.eth.sync.state.SyncState;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
-import tech.pegasys.pantheon.ethereum.mainnet.ScheduleBasedBlockHashFunction;
-import tech.pegasys.pantheon.ethereum.p2p.NetworkRunner;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.ethereum.p2p.api.PeerConnection;
+import tech.pegasys.pantheon.ethereum.mainnet.ScheduleBasedBlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.p2p.config.DiscoveryConfiguration;
 import tech.pegasys.pantheon.ethereum.p2p.config.NetworkingConfiguration;
 import tech.pegasys.pantheon.ethereum.p2p.config.RlpxConfiguration;
-import tech.pegasys.pantheon.ethereum.p2p.netty.NettyP2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.DefaultP2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.NetworkRunner;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
 import tech.pegasys.pantheon.ethereum.p2p.peers.DefaultPeer;
-import tech.pegasys.pantheon.ethereum.p2p.peers.Endpoint;
 import tech.pegasys.pantheon.ethereum.p2p.peers.Peer;
-import tech.pegasys.pantheon.ethereum.p2p.peers.PeerBlacklist;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.connections.PeerConnection;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.ethereum.worldstate.WorldStateArchive;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
 import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
@@ -53,11 +53,8 @@ import tech.pegasys.pantheon.util.bytes.BytesValue;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 
 import io.vertx.core.Vertx;
@@ -69,7 +66,6 @@ public class TestNode implements Closeable {
   private static final Logger LOG = LogManager.getLogger();
   private static final MetricsSystem metricsSystem = new NoOpMetricsSystem();
 
-  protected final Integer port;
   protected final SECP256K1.KeyPair kp;
   protected final P2PNetwork network;
   protected final Peer selfPeer;
@@ -90,18 +86,20 @@ public class TestNode implements Closeable {
     final NetworkingConfiguration networkingConfiguration =
         NetworkingConfiguration.create()
             .setDiscovery(discoveryCfg)
-            .setRlpx(RlpxConfiguration.create().setBindPort(listenPort))
-            .setSupportedProtocols(EthProtocol.get());
+            .setRlpx(
+                RlpxConfiguration.create()
+                    .setBindPort(listenPort)
+                    .setSupportedProtocols(EthProtocol.get()));
 
     final GenesisConfigFile genesisConfigFile = GenesisConfigFile.development();
     final ProtocolSchedule<Void> protocolSchedule =
         FixedDifficultyProtocolSchedule.create(GenesisConfigFile.development().getConfigOptions());
 
     final GenesisState genesisState = GenesisState.fromConfig(genesisConfigFile, protocolSchedule);
-    final BlockHashFunction blockHashFunction =
-        ScheduleBasedBlockHashFunction.create(protocolSchedule);
+    final BlockHeaderFunctions blockHeaderFunctions =
+        ScheduleBasedBlockHeaderFunctions.create(protocolSchedule);
     final MutableBlockchain blockchain =
-        createInMemoryBlockchain(genesisState.getBlock(), blockHashFunction);
+        createInMemoryBlockchain(genesisState.getBlock(), blockHeaderFunctions);
     final WorldStateArchive worldStateArchive = createInMemoryWorldStateArchive();
     genesisState.writeStateTo(worldStateArchive.getMutable());
     final ProtocolContext<Void> protocolContext =
@@ -115,6 +113,7 @@ public class TestNode implements Closeable {
             1,
             1,
             1,
+            TestClock.fixed(),
             new NoOpMetricsSystem(),
             EthereumWireProtocolConfiguration.defaultConfig());
 
@@ -124,23 +123,24 @@ public class TestNode implements Closeable {
             .protocolManagers(singletonList(ethProtocolManager))
             .network(
                 capabilities ->
-                    new NettyP2PNetwork(
-                        vertx,
-                        this.kp,
-                        networkingConfiguration,
-                        capabilities,
-                        new PeerBlacklist(),
-                        new NoOpMetricsSystem(),
-                        Optional.empty(),
-                        Optional.empty()))
+                    DefaultP2PNetwork.builder()
+                        .vertx(vertx)
+                        .keyPair(this.kp)
+                        .config(networkingConfiguration)
+                        .metricsSystem(new NoOpMetricsSystem())
+                        .supportedCapabilities(capabilities)
+                        .build())
             .metricsSystem(new NoOpMetricsSystem())
             .build();
     network = networkRunner.getNetwork();
-    this.port = network.getLocalPeerInfo().getPort();
     network.subscribeDisconnect(
         (connection, reason, initiatedByPeer) -> disconnections.put(connection, reason));
 
     final EthContext ethContext = ethProtocolManager.ethContext();
+
+    SyncState syncState = mock(SyncState.class);
+    when(syncState.isInSync(anyLong())).thenReturn(true);
+
     transactionPool =
         TransactionPoolFactory.createTransactionPool(
             protocolSchedule,
@@ -148,10 +148,12 @@ public class TestNode implements Closeable {
             ethContext,
             TestClock.fixed(),
             PendingTransactions.MAX_PENDING_TRANSACTIONS,
-            metricsSystem);
-    networkRunner.start();
+            metricsSystem,
+            syncState,
+            PendingTransactions.DEFAULT_TX_RETENTION_HOURS);
 
-    selfPeer = new DefaultPeer(id(), endpoint());
+    networkRunner.start();
+    selfPeer = DefaultPeer.fromEnodeURL(network.getLocalEnode().get());
   }
 
   public BytesValue id() {
@@ -164,13 +166,6 @@ public class TestNode implements Closeable {
 
   public String shortId() {
     return shortId(id());
-  }
-
-  public Endpoint endpoint() {
-    checkNotNull(
-        port, "Must either pass port to ctor, or call createNetwork() first to set the port");
-    return new Endpoint(
-        InetAddress.getLoopbackAddress().getHostAddress(), port, OptionalInt.of(port));
   }
 
   public Peer selfPeer() {
@@ -203,9 +198,9 @@ public class TestNode implements Closeable {
   public String toString() {
     return shortId()
         + "@"
-        + selfPeer.getEndpoint().getHost()
+        + selfPeer.getEnodeURL().getIpAsString()
         + ':'
-        + selfPeer.getEndpoint().getTcpPort();
+        + selfPeer.getEnodeURL().getListeningPortOrZero();
   }
 
   public void receiveRemoteTransaction(final Transaction transaction) {

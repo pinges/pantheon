@@ -33,7 +33,6 @@ network="MAINNET"
 genesis-file="~/genesis.json"
 sync-mode="fast"
 fast-sync-min-peers=5
-fast-sync-max-wait-time=30
 network-id=303
 
 # JSON-RPC
@@ -45,6 +44,12 @@ rpc-http-apis=["DEBUG","ETH"]
 rpc-http-cors-origins=["none"]
 rpc-http-authentication-enabled=false
 rpc-http-authentication-credentials-file="none"
+
+# GRAPHQL HTTP
+graphql-http-enabled=false
+graphql-http-host="6.7.8.9"
+graphql-http-port=6789
+graphql-http-cors-origins=["none"]
 
 # WebSockets API
 rpc-ws-enabled=false
@@ -79,11 +84,16 @@ permissions-accounts-config-file-enabled=false
 permissions-accounts-config-file="./permissions_config.toml"
 permissions-nodes-contract-enabled=false
 permissions-nodes-contract-address="0x0000000000000000000000000000000000001234"
+permissions-accounts-contract-enabled=false
+permissions-accounts-contract-address="0x0000000000000000000000000000000000006789"
 
 # Privacy
 privacy-url="http://127.0.0.1:8888"
 privacy-public-key-file="./pubKey.pub"
 privacy-enabled=false
 privacy-precompiled-address=9
+
+# Transaction Pool
+tx-pool-retention-hours=999
 
 tx-pool-max-size=1234

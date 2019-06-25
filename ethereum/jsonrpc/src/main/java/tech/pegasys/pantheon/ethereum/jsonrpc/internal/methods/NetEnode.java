@@ -12,13 +12,14 @@
  */
 package tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods;
 
+import tech.pegasys.pantheon.ethereum.jsonrpc.RpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcError;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcErrorResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.util.enode.EnodeURL;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.peers.EnodeURL;
 
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ public class NetEnode implements JsonRpcMethod {
 
   @Override
   public String getName() {
-    return "net_enode";
+    return RpcMethod.NET_ENODE.getMethodName();
   }
 
   @Override
@@ -41,7 +42,7 @@ public class NetEnode implements JsonRpcMethod {
       return p2pDisabledResponse(req);
     }
 
-    final Optional<EnodeURL> enodeURL = p2pNetwork.getSelfEnodeURL();
+    final Optional<EnodeURL> enodeURL = p2pNetwork.getLocalEnode();
     if (!enodeURL.isPresent()) {
       return enodeUrlNotAvailable(req);
     }
@@ -54,6 +55,6 @@ public class NetEnode implements JsonRpcMethod {
   }
 
   private JsonRpcErrorResponse enodeUrlNotAvailable(final JsonRpcRequest req) {
-    return new JsonRpcErrorResponse(req.getId(), JsonRpcError.ENODE_NOT_AVAILABLE);
+    return new JsonRpcErrorResponse(req.getId(), JsonRpcError.P2P_NETWORK_NOT_RUNNING);
   }
 }

@@ -26,7 +26,7 @@ import tech.pegasys.pantheon.ethereum.eth.manager.EthContext;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthPeer;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthPeers;
 import tech.pegasys.pantheon.ethereum.eth.messages.NewBlockMessage;
-import tech.pegasys.pantheon.ethereum.p2p.api.PeerConnection;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.connections.PeerConnection;
 import tech.pegasys.pantheon.util.uint.UInt256;
 
 import java.util.Collections;
@@ -40,7 +40,7 @@ public class BlockBroadcasterTest {
   public void blockPropagationUnitTest() throws PeerConnection.PeerNotConnected {
     final EthPeer ethPeer = mock(EthPeer.class);
     final EthPeers ethPeers = mock(EthPeers.class);
-    when(ethPeers.availablePeers()).thenReturn(Stream.of(ethPeer));
+    when(ethPeers.streamAvailablePeers()).thenReturn(Stream.of(ethPeer));
 
     final EthContext ethContext = mock(EthContext.class);
     when(ethContext.getEthPeers()).thenReturn(ethPeers);
@@ -63,7 +63,7 @@ public class BlockBroadcasterTest {
     final EthPeer ethPeer1 = mock(EthPeer.class);
 
     final EthPeers ethPeers = mock(EthPeers.class);
-    when(ethPeers.availablePeers()).thenReturn(Stream.of(ethPeer0, ethPeer1));
+    when(ethPeers.streamAvailablePeers()).thenReturn(Stream.of(ethPeer0, ethPeer1));
 
     final EthContext ethContext = mock(EthContext.class);
     when(ethContext.getEthPeers()).thenReturn(ethPeers);

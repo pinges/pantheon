@@ -13,8 +13,8 @@
 package tech.pegasys.pantheon.ethereum.eth.transactions;
 
 import tech.pegasys.pantheon.ethereum.core.Transaction;
-import tech.pegasys.pantheon.ethereum.core.TransactionPool.TransactionBatchAddedListener;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthContext;
+import tech.pegasys.pantheon.ethereum.eth.transactions.TransactionPool.TransactionBatchAddedListener;
 
 class TransactionSender implements TransactionBatchAddedListener {
 
@@ -35,7 +35,7 @@ class TransactionSender implements TransactionBatchAddedListener {
   public void onTransactionsAdded(final Iterable<Transaction> transactions) {
     ethContext
         .getEthPeers()
-        .availablePeers()
+        .streamAvailablePeers()
         .forEach(
             peer ->
                 transactions.forEach(

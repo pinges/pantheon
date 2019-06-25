@@ -31,6 +31,7 @@ public interface DefaultCommandValues {
 
   String MANDATORY_PATH_FORMAT_HELP = "<PATH>";
   String MANDATORY_FILE_FORMAT_HELP = "<FILE>";
+  String MANDATORY_DIRECTORY_FORMAT_HELP = "<DIRECTORY>";
   String PANTHEON_HOME_PROPERTY_NAME = "pantheon.home";
   String DEFAULT_DATA_DIR_PATH = "./build/data";
   String MANDATORY_INTEGER_FORMAT_HELP = "<INTEGER>";
@@ -43,6 +44,7 @@ public interface DefaultCommandValues {
   long DEFAULT_MIN_REFRESH_DELAY = 1;
   String DOCKER_GENESIS_LOCATION = "/etc/pantheon/genesis.json";
   String DOCKER_DATADIR_LOCATION = "/var/lib/pantheon";
+  String DOCKER_PLUGINSDIR_LOCATION = "/etc/pantheon/plugins";
   String DOCKER_RPC_HTTP_AUTHENTICATION_CREDENTIALS_FILE_LOCATION =
       "/etc/pantheon/rpc_http_auth_config.toml";
   String DOCKER_RPC_WS_AUTHENTICATION_CREDENTIALS_FILE_LOCATION =

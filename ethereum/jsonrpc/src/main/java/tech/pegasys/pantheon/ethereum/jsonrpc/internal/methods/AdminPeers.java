@@ -12,23 +12,20 @@
  */
 package tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods;
 
+import tech.pegasys.pantheon.ethereum.jsonrpc.RpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcError;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcErrorResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.results.PeerResult;
-import tech.pegasys.pantheon.ethereum.p2p.P2pDisabledException;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.exceptions.P2PDisabledException;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class AdminPeers implements JsonRpcMethod {
-  private static final Logger LOG = LogManager.getLogger();
   private final P2PNetwork peerDiscoveryAgent;
 
   public AdminPeers(final P2PNetwork peerDiscoveryAgent) {
@@ -37,7 +34,7 @@ public class AdminPeers implements JsonRpcMethod {
 
   @Override
   public String getName() {
-    return "admin_peers";
+    return RpcMethod.ADMIN_PEERS.getMethodName();
   }
 
   @Override
@@ -48,11 +45,8 @@ public class AdminPeers implements JsonRpcMethod {
           peerDiscoveryAgent.getPeers().stream().map(PeerResult::new).collect(Collectors.toList());
       final JsonRpcResponse result = new JsonRpcSuccessResponse(req.getId(), peers);
       return result;
-    } catch (P2pDisabledException e) {
+    } catch (P2PDisabledException e) {
       return new JsonRpcErrorResponse(req.getId(), JsonRpcError.P2P_DISABLED);
-    } catch (final Exception e) {
-      LOG.error("Error processing request: " + req, e);
-      throw e;
     }
   }
 }

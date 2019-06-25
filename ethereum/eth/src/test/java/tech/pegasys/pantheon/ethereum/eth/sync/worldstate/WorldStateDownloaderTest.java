@@ -45,7 +45,7 @@ import tech.pegasys.pantheon.ethereum.eth.messages.EthPV63;
 import tech.pegasys.pantheon.ethereum.eth.messages.GetNodeDataMessage;
 import tech.pegasys.pantheon.ethereum.eth.sync.SynchronizerConfiguration;
 import tech.pegasys.pantheon.ethereum.mainnet.MainnetProtocolSchedule;
-import tech.pegasys.pantheon.ethereum.p2p.api.MessageData;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.MessageData;
 import tech.pegasys.pantheon.ethereum.rlp.RLP;
 import tech.pegasys.pantheon.ethereum.storage.keyvalue.KeyValueStorageWorldStateStorage;
 import tech.pegasys.pantheon.ethereum.trie.MerklePatriciaTrie;
@@ -107,10 +107,14 @@ public class WorldStateDownloaderTest {
               .setNameFormat(WorldStateDownloaderTest.class.getSimpleName() + "-persistence-%d")
               .build());
 
+  final EthProtocolManager ethProtocolManager =
+      EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
+
   @After
   public void tearDown() throws Exception {
     persistenceThread.shutdownNow();
     assertThat(persistenceThread.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+    ethProtocolManager.stop();
   }
 
   @Test
@@ -145,8 +149,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void downloadEmptyWorldState() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
     final BlockHeader header =
         dataGen
             .block(BlockOptions.create().setStateRoot(EMPTY_TRIE_ROOT).setBlockNumber(10))
@@ -177,9 +179,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void downloadAlreadyAvailableWorldState() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     // Setup existing state
     final WorldStateStorage storage =
         new KeyValueStorageWorldStateStorage(new InMemoryKeyValueStorage());
@@ -274,9 +273,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void doesNotRequestKnownCodeFromNetwork() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     // Setup "remote" state
     final WorldStateStorage remoteStorage =
         new KeyValueStorageWorldStateStorage(new InMemoryKeyValueStorage());
@@ -429,9 +425,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void doesNotRequestKnownAccountTrieNodesFromNetwork() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     // Setup "remote" state
     final WorldStateStorage remoteStorage =
         new KeyValueStorageWorldStateStorage(new InMemoryKeyValueStorage());
@@ -511,9 +504,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void doesNotRequestKnownStorageTrieNodesFromNetwork() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     // Setup "remote" state
     final WorldStateStorage remoteStorage =
         new KeyValueStorageWorldStateStorage(new InMemoryKeyValueStorage());
@@ -666,9 +656,6 @@ public class WorldStateDownloaderTest {
 
   @Test
   public void resumesFromNonEmptyQueue() {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     // Setup "remote" state
     final WorldStateStorage remoteStorage =
         new KeyValueStorageWorldStateStorage(new InMemoryKeyValueStorage());
@@ -803,9 +790,6 @@ public class WorldStateDownloaderTest {
       final int hashesPerRequest,
       final int maxOutstandingRequests,
       final NetworkResponder networkResponder) {
-    final EthProtocolManager ethProtocolManager =
-        EthProtocolManagerTestUtil.create(new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
-
     final int trailingPeerCount = 5;
 
     // Setup "remote" state

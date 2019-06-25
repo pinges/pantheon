@@ -39,10 +39,10 @@ import tech.pegasys.pantheon.ethereum.eth.manager.RespondingEthPeer;
 import tech.pegasys.pantheon.ethereum.eth.manager.exceptions.EthTaskException;
 import tech.pegasys.pantheon.ethereum.eth.manager.exceptions.EthTaskException.FailureReason;
 import tech.pegasys.pantheon.ethereum.eth.manager.task.EthTask;
-import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockHashFunction;
+import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.mainnet.MainnetProtocolSchedule;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.ethereum.worldstate.WorldStateArchive;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
 import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
@@ -190,7 +190,7 @@ public class DetermineCommonAncestorTaskTest {
         });
 
     Assertions.assertThat(result.get().getHash())
-        .isEqualTo(MainnetBlockHashFunction.createHash(localGenesisBlock.getHeader()));
+        .isEqualTo(MainnetBlockHeaderFunctions.createHash(localGenesisBlock.getHeader()));
 
     verify(spy, times(3)).requestHeaders();
   }
@@ -226,7 +226,7 @@ public class DetermineCommonAncestorTaskTest {
         });
 
     Assertions.assertThat(result.get().getHash())
-        .isEqualTo(MainnetBlockHashFunction.createHash(commonHeader));
+        .isEqualTo(MainnetBlockHeaderFunctions.createHash(commonHeader));
 
     verify(spy, times(1)).requestHeaders();
   }

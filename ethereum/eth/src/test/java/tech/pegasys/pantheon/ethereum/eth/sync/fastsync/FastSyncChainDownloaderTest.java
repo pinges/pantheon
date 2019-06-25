@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static tech.pegasys.pantheon.ethereum.mainnet.HeaderValidationMode.LIGHT_SKIP_DETACHED;
-import static tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason.TOO_MANY_PEERS;
+import static tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason.TOO_MANY_PEERS;
 
 import tech.pegasys.pantheon.ethereum.ProtocolContext;
 import tech.pegasys.pantheon.ethereum.chain.Blockchain;
@@ -39,6 +39,7 @@ import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.LockSupport;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,6 +74,11 @@ public class FastSyncChainDownloaderTest {
             new EthScheduler(1, 1, 1, new NoOpMetricsSystem()));
     ethContext = ethProtocolManager.ethContext();
     syncState = new SyncState(protocolContext.getBlockchain(), ethContext.getEthPeers());
+  }
+
+  @After
+  public void tearDown() {
+    ethProtocolManager.stop();
   }
 
   private ChainDownloader downloader(

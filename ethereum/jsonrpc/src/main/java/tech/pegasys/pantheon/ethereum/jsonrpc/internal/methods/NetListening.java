@@ -12,10 +12,11 @@
  */
 package tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods;
 
+import tech.pegasys.pantheon.ethereum.jsonrpc.RpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
 
 public class NetListening implements JsonRpcMethod {
 
@@ -27,7 +28,7 @@ public class NetListening implements JsonRpcMethod {
 
   @Override
   public String getName() {
-    return "net_listening";
+    return RpcMethod.NET_LISTENING.getMethodName();
   }
 
   @Override

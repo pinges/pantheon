@@ -20,8 +20,8 @@ import tech.pegasys.pantheon.consensus.ibft.messagedata.RoundChangeMessageData;
 import tech.pegasys.pantheon.consensus.ibft.network.ValidatorMulticaster;
 import tech.pegasys.pantheon.consensus.ibft.payload.Authored;
 import tech.pegasys.pantheon.ethereum.core.Address;
-import tech.pegasys.pantheon.ethereum.p2p.api.Message;
-import tech.pegasys.pantheon.ethereum.p2p.api.MessageData;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.Message;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.MessageData;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class IbftGossip implements Gossiper {
     }
     final List<Address> excludeAddressesList =
         Lists.newArrayList(
-            message.getConnection().getPeer().getAddress(), decodedMessage.getAuthor());
+            message.getConnection().getPeerInfo().getAddress(), decodedMessage.getAuthor());
 
     multicaster.send(messageData, excludeAddressesList);
   }

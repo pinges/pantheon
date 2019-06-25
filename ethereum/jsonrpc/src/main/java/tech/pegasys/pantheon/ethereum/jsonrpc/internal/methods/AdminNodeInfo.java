@@ -14,27 +14,24 @@ package tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods;
 
 import tech.pegasys.pantheon.config.GenesisConfigOptions;
 import tech.pegasys.pantheon.ethereum.chain.ChainHead;
+import tech.pegasys.pantheon.ethereum.jsonrpc.RpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.queries.BlockchainQueries;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcError;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcErrorResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
-import tech.pegasys.pantheon.ethereum.p2p.P2pDisabledException;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.ethereum.p2p.wire.PeerInfo;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.peers.EnodeURL;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class AdminNodeInfo implements JsonRpcMethod {
-
-  private static final Logger LOG = LogManager.getLogger();
 
   private final String clientVersion;
   private final int networkId;
@@ -57,58 +54,57 @@ public class AdminNodeInfo implements JsonRpcMethod {
 
   @Override
   public String getName() {
-    return "admin_nodeInfo";
+    return RpcMethod.ADMIN_NODE_INFO.getMethodName();
   }
 
   @Override
   public JsonRpcResponse response(final JsonRpcRequest req) {
+    final Map<String, Object> response = new HashMap<>();
+    final Map<String, Integer> ports = new HashMap<>();
 
-    try {
-      final Map<String, Object> response = new HashMap<>();
-      final Map<String, Integer> ports = new HashMap<>();
-
-      final PeerInfo peerInfo = peerNetwork.getLocalPeerInfo();
-      final BytesValue nodeId = peerInfo.getNodeId();
-      peerNetwork
-          .getAdvertisedPeer()
-          .ifPresent(
-              advertisedPeer -> {
-                response.put("enode", advertisedPeer.getEnodeURLString());
-                ports.put("discovery", advertisedPeer.getEndpoint().getUdpPort());
-                response.put("ip", advertisedPeer.getEndpoint().getHost());
-                response.put(
-                    "listenAddr",
-                    advertisedPeer.getEndpoint().getHost() + ":" + peerInfo.getPort());
-              });
-      response.put("id", nodeId.toString().substring(2));
-      response.put("name", clientVersion);
-
-      ports.put("listener", peerInfo.getPort());
-      response.put("ports", ports);
-
-      final ChainHead chainHead = blockchainQueries.getBlockchain().getChainHead();
-      response.put(
-          "protocols",
-          ImmutableMap.of(
-              "eth",
-              ImmutableMap.of(
-                  "config",
-                  genesisConfigOptions.asMap(),
-                  "difficulty",
-                  chainHead.getTotalDifficulty().toLong(),
-                  "genesis",
-                  blockchainQueries.getBlockHashByNumber(0).get().toString(),
-                  "head",
-                  chainHead.getHash().toString(),
-                  "network",
-                  networkId)));
-
-      return new JsonRpcSuccessResponse(req.getId(), response);
-    } catch (final P2pDisabledException e) {
+    if (!peerNetwork.isP2pEnabled()) {
       return new JsonRpcErrorResponse(req.getId(), JsonRpcError.P2P_DISABLED);
-    } catch (final Exception e) {
-      LOG.error("Error processing request: " + req, e);
-      throw e;
     }
+    final Optional<EnodeURL> maybeEnode = peerNetwork.getLocalEnode();
+    if (!maybeEnode.isPresent()) {
+      return new JsonRpcErrorResponse(req.getId(), JsonRpcError.P2P_NETWORK_NOT_RUNNING);
+    }
+    final EnodeURL enode = maybeEnode.get();
+
+    final BytesValue nodeId = enode.getNodeId();
+    response.put("enode", enode.toString());
+    response.put("ip", enode.getIpAsString());
+    if (enode.isListening()) {
+      response.put("listenAddr", enode.getIpAsString() + ":" + enode.getListeningPort().getAsInt());
+    }
+    response.put("id", nodeId.toUnprefixedString());
+    response.put("name", clientVersion);
+
+    if (enode.isRunningDiscovery()) {
+      ports.put("discovery", enode.getDiscoveryPortOrZero());
+    }
+    if (enode.isListening()) {
+      ports.put("listener", enode.getListeningPort().getAsInt());
+    }
+    response.put("ports", ports);
+
+    final ChainHead chainHead = blockchainQueries.getBlockchain().getChainHead();
+    response.put(
+        "protocols",
+        ImmutableMap.of(
+            "eth",
+            ImmutableMap.of(
+                "config",
+                genesisConfigOptions.asMap(),
+                "difficulty",
+                chainHead.getTotalDifficulty().toLong(),
+                "genesis",
+                blockchainQueries.getBlockHashByNumber(0).get().toString(),
+                "head",
+                chainHead.getHash().toString(),
+                "network",
+                networkId)));
+
+    return new JsonRpcSuccessResponse(req.getId(), response);
   }
 }

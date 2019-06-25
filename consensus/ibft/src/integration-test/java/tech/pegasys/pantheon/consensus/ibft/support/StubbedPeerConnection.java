@@ -16,8 +16,8 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import tech.pegasys.pantheon.ethereum.p2p.api.PeerConnection;
-import tech.pegasys.pantheon.ethereum.p2p.wire.PeerInfo;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.connections.PeerConnection;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.PeerInfo;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
 
 public class StubbedPeerConnection {
@@ -25,7 +25,7 @@ public class StubbedPeerConnection {
   public static PeerConnection create(final BytesValue nodeId) {
     PeerConnection peerConnection = mock(PeerConnection.class);
     PeerInfo peerInfo = new PeerInfo(0, "IbftIntTestPeer", emptyList(), 0, nodeId);
-    when(peerConnection.getPeer()).thenReturn(peerInfo);
+    when(peerConnection.getPeerInfo()).thenReturn(peerInfo);
     return peerConnection;
   }
 }

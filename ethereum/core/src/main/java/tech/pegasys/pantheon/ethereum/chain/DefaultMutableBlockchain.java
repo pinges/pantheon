@@ -23,8 +23,8 @@ import tech.pegasys.pantheon.ethereum.core.BlockHeader;
 import tech.pegasys.pantheon.ethereum.core.Hash;
 import tech.pegasys.pantheon.ethereum.core.Transaction;
 import tech.pegasys.pantheon.ethereum.core.TransactionReceipt;
-import tech.pegasys.pantheon.metrics.MetricCategory;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
+import tech.pegasys.pantheon.metrics.PantheonMetricCategory;
 import tech.pegasys.pantheon.util.InvalidConfigurationException;
 import tech.pegasys.pantheon.util.Subscribers;
 import tech.pegasys.pantheon.util.bytes.BytesValues;
@@ -46,7 +46,12 @@ public class DefaultMutableBlockchain implements MutableBlockchain {
 
   private final BlockchainStorage blockchainStorage;
 
-  private final Subscribers<BlockAddedObserver> blockAddedObservers = new Subscribers<>();
+  private final Subscribers<BlockAddedObserver> blockAddedObservers = Subscribers.create();
+
+  private volatile BlockHeader chainHeader;
+  private volatile UInt256 totalDifficulty;
+  private volatile int chainHeadTransactionCount;
+  private volatile int chainHeadOmmerCount;
 
   public DefaultMutableBlockchain(
       final Block genesisBlock,
@@ -56,41 +61,75 @@ public class DefaultMutableBlockchain implements MutableBlockchain {
     this.blockchainStorage = blockchainStorage;
     this.setGenesis(genesisBlock);
 
-    metricsSystem.createGauge(
-        MetricCategory.BLOCKCHAIN,
+    final Hash chainHead = blockchainStorage.getChainHead().get();
+    chainHeader = blockchainStorage.getBlockHeader(chainHead).get();
+    totalDifficulty = blockchainStorage.getTotalDifficulty(chainHead).get();
+    final BlockBody chainHeadBody = blockchainStorage.getBlockBody(chainHead).get();
+    chainHeadTransactionCount = chainHeadBody.getTransactions().size();
+    chainHeadOmmerCount = chainHeadBody.getOmmers().size();
+
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
         "height",
         "Height of the chainhead",
-        () -> (double) this.getChainHeadBlockNumber());
-    metricsSystem.createGauge(
-        MetricCategory.BLOCKCHAIN,
+        this::getChainHeadBlockNumber);
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
         "difficulty_total",
         "Total difficulty of the chainhead",
         () ->
             BytesValues.asUnsignedBigInteger(this.getChainHead().getTotalDifficulty().getBytes())
-                .doubleValue());
+                .longValue());
+
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
+        "chain_head_timestamp",
+        "Timestamp from the current chain head",
+        () -> getChainHeadHeader().getTimestamp());
+
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
+        "chain_head_gas_used",
+        "Gas used by the current chain head block",
+        () -> getChainHeadHeader().getGasUsed());
+
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
+        "chain_head_gas_limit",
+        "Block gas limit of the current chain head block",
+        () -> getChainHeadHeader().getGasLimit());
+
+    metricsSystem.createIntegerGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
+        "chain_head_transaction_count",
+        "Number of transactions in the current chain head block",
+        () -> chainHeadTransactionCount);
+
+    metricsSystem.createIntegerGauge(
+        PantheonMetricCategory.BLOCKCHAIN,
+        "chain_head_ommer_count",
+        "Number of ommers in the current chain head block",
+        () -> chainHeadOmmerCount);
   }
 
   @Override
   public ChainHead getChainHead() {
-    return blockchainStorage
-        .getChainHead()
-        .flatMap(h -> blockchainStorage.getTotalDifficulty(h).map(td -> new ChainHead(h, td)))
-        .get();
+    return new ChainHead(chainHeader.getHash(), totalDifficulty);
   }
 
   @Override
   public Hash getChainHeadHash() {
-    return blockchainStorage.getChainHead().get();
+    return chainHeader.getHash();
   }
 
   @Override
   public long getChainHeadBlockNumber() {
-    // Head should always be set, so we can call get()
-    return blockchainStorage
-        .getChainHead()
-        .flatMap(blockchainStorage::getBlockHeader)
-        .map(BlockHeader::getNumber)
-        .get();
+    return chainHeader.getNumber();
+  }
+
+  @Override
+  public BlockHeader getChainHeadHeader() {
+    return chainHeader;
   }
 
   @Override
@@ -171,6 +210,12 @@ public class DefaultMutableBlockchain implements MutableBlockchain {
     final BlockAddedEvent blockAddedEvent = updateCanonicalChainData(updater, block, td);
 
     updater.commit();
+    if (blockAddedEvent.isNewCanonicalHead()) {
+      chainHeader = block.getHeader();
+      totalDifficulty = td;
+      chainHeadTransactionCount = block.getBody().getTransactions().size();
+      chainHeadOmmerCount = block.getBody().getOmmers().size();
+    }
 
     return blockAddedEvent;
   }
@@ -368,11 +413,17 @@ public class DefaultMutableBlockchain implements MutableBlockchain {
     }
   }
 
-  protected boolean blockIsAlreadyTracked(final Block block) {
+  private boolean blockIsAlreadyTracked(final Block block) {
+    if (block.getHeader().getParentHash().equals(chainHeader.getHash())) {
+      // If this block builds on our chain head it would have a higher TD and be the chain head
+      // but since it isn't we mustn't have imported it yet.
+      // Saves a db read for the most common case
+      return false;
+    }
     return blockchainStorage.getBlockHeader(block.getHash()).isPresent();
   }
 
-  protected boolean blockIsConnected(final Block block) {
+  private boolean blockIsConnected(final Block block) {
     return blockchainStorage.getBlockHeader(block.getHeader().getParentHash()).isPresent();
   }
 

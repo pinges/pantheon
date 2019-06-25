@@ -3,9 +3,6 @@ description: Privacy
 
 # Privacy
 
-!!!note
-    Privacy is under development and will be available in v1.1.
-
 Privacy in Pantheon refers to the ability to keep transactions private between the involved parties. 
 Other parties cannot access the transaction content, sending party, or list of participating parties. 
 
@@ -51,7 +48,7 @@ Private transactions have additional attributes to public Ethereum transactions:
 Pantheon and Orion nodes both have public/private key pairs identifying them. The private transaction 
 submitted from the Pantheon node to the Orion node is signed with the Pantheon node private key. The 
 `privateFrom` and `privateFor` attributes specified in the RLP-encoded transaction string for 
-[`eea_sendRawTransaction`](../Reference/JSON-RPC-API-Methods.md#eea_sendrawtransaction) are the public keys
+[`eea_sendRawTransaction`](../Reference/Pantheon-API-Methods.md#eea_sendrawtransaction) are the public keys
 of the Orion nodes sending and receiving the transaction.  
 
 !!! important 

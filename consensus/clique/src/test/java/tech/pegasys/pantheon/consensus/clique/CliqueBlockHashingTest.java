@@ -19,7 +19,6 @@ import tech.pegasys.pantheon.ethereum.core.BlockHeader;
 import tech.pegasys.pantheon.ethereum.core.BlockHeaderBuilder;
 import tech.pegasys.pantheon.ethereum.core.Hash;
 import tech.pegasys.pantheon.ethereum.core.LogsBloomFilter;
-import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockHashFunction;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
 import tech.pegasys.pantheon.util.uint.UInt256;
 
@@ -49,7 +48,7 @@ public class CliqueBlockHashingTest {
 
   @Test
   public void recoverProposerAddressFromSeal() {
-    final CliqueExtraData cliqueExtraData = CliqueExtraData.decode(expectedHeader.getExtraData());
+    final CliqueExtraData cliqueExtraData = CliqueExtraData.decode(expectedHeader);
     final Address proposerAddress =
         CliqueBlockHashing.recoverProposerAddress(expectedHeader, cliqueExtraData);
 
@@ -57,8 +56,18 @@ public class CliqueBlockHashingTest {
   }
 
   @Test
+  public void recoverProposerAddressForGenesisBlockReturnsAddressZero() {
+    final BlockHeader genesisBlockHeader = createGenesisBlock();
+    final CliqueExtraData cliqueExtraData = CliqueExtraData.decode(genesisBlockHeader);
+    final Address proposerAddress =
+        CliqueBlockHashing.recoverProposerAddress(genesisBlockHeader, cliqueExtraData);
+
+    assertThat(proposerAddress).isEqualTo(Address.ZERO);
+  }
+
+  @Test
   public void readValidatorListFromExtraData() {
-    final CliqueExtraData cliqueExtraData = CliqueExtraData.decode(expectedHeader.getExtraData());
+    final CliqueExtraData cliqueExtraData = CliqueExtraData.decode(expectedHeader);
     assertThat(cliqueExtraData.getValidators()).isEqualTo(VALIDATORS_IN_HEADER);
   }
 
@@ -98,7 +107,36 @@ public class CliqueBlockHashingTest {
     builder.transactionsRoot(
         Hash.fromHexString("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"));
 
-    builder.blockHashFunction(MainnetBlockHashFunction::createHash);
+    builder.blockHeaderFunctions(new CliqueBlockHeaderFunctions());
+
+    return builder.buildBlockHeader();
+  }
+
+  private BlockHeader createGenesisBlock() {
+    // The following was taken from the Rinkeby genesis file
+    final BlockHeaderBuilder builder = new BlockHeaderBuilder();
+    builder.difficulty(UInt256.of(1));
+    builder.extraData(
+        BytesValue.fromHexString(
+            "0x52657370656374206d7920617574686f7269746168207e452e436172746d616e42eb768f2244c8811c63729a21a3569731535f067ffc57839b00206d1ad20c69a1981b489f772031b279182d99e65703f0076e4812653aab85fca0f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"));
+    builder.gasLimit(4700000);
+    builder.gasUsed(0);
+    // Do not do Hash.
+    builder.logsBloom(
+        LogsBloomFilter.fromHexString(
+            "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"));
+    builder.coinbase(Address.fromHexString("0x0000000000000000000000000000000000000000"));
+    builder.mixHash(Hash.ZERO);
+    builder.nonce(0);
+    builder.number(0);
+    builder.parentHash(Hash.ZERO);
+    builder.receiptsRoot(Hash.ZERO);
+    builder.ommersHash(Hash.ZERO);
+    builder.stateRoot(Hash.ZERO);
+    builder.timestamp(1492009146);
+    builder.transactionsRoot(Hash.ZERO);
+
+    builder.blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
     return builder.buildBlockHeader();
   }

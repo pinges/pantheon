@@ -20,18 +20,20 @@ import static tech.pegasys.pantheon.util.FutureUtils.exceptionallyCompose;
 import tech.pegasys.pantheon.ethereum.ProtocolContext;
 import tech.pegasys.pantheon.ethereum.core.BlockHeader;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthContext;
-import tech.pegasys.pantheon.ethereum.eth.manager.EthScheduler;
 import tech.pegasys.pantheon.ethereum.eth.manager.task.WaitForPeersTask;
 import tech.pegasys.pantheon.ethereum.eth.sync.ChainDownloader;
 import tech.pegasys.pantheon.ethereum.eth.sync.SynchronizerConfiguration;
 import tech.pegasys.pantheon.ethereum.eth.sync.state.SyncState;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
+import tech.pegasys.pantheon.metrics.Counter;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
+import tech.pegasys.pantheon.metrics.PantheonMetricCategory;
 import tech.pegasys.pantheon.util.ExceptionUtils;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,6 +47,8 @@ public class FastSyncActions<C> {
   private final EthContext ethContext;
   private final SyncState syncState;
   private final MetricsSystem metricsSystem;
+  private final Counter pivotBlockSelectionCounter;
+  private final AtomicLong pivotBlockGauge = new AtomicLong(0);
 
   public FastSyncActions(
       final SynchronizerConfiguration syncConfig,
@@ -59,6 +63,17 @@ public class FastSyncActions<C> {
     this.ethContext = ethContext;
     this.syncState = syncState;
     this.metricsSystem = metricsSystem;
+
+    pivotBlockSelectionCounter =
+        metricsSystem.createCounter(
+            PantheonMetricCategory.SYNCHRONIZER,
+            "fast_sync_pivot_block_selected_count",
+            "Number of times a fast sync pivot block has been selected");
+    metricsSystem.createLongGauge(
+        PantheonMetricCategory.SYNCHRONIZER,
+        "fast_sync_pivot_block_current",
+        "The current fast sync pivot block",
+        pivotBlockGauge::get);
   }
 
   public CompletableFuture<FastSyncState> waitForSuitablePeers(final FastSyncState fastSyncState) {
@@ -70,40 +85,10 @@ public class FastSyncActions<C> {
         WaitForPeersTask.create(
             ethContext, syncConfig.getFastSyncMinimumPeerCount(), metricsSystem);
 
-    final EthScheduler scheduler = ethContext.getScheduler();
-    final CompletableFuture<Void> fastSyncTask;
-    if (!syncConfig.getFastSyncMaximumPeerWaitTime().isZero()) {
-      LOG.debug(
-          "Waiting for at least {} peers, maximum wait time set to {}.",
-          syncConfig.getFastSyncMinimumPeerCount(),
-          syncConfig.getFastSyncMaximumPeerWaitTime().toString());
-      fastSyncTask =
-          scheduler.timeout(waitForPeersTask, syncConfig.getFastSyncMaximumPeerWaitTime());
-    } else {
-      LOG.debug(
-          "Waiting for at least {} peers, no maximum wait time set.",
-          syncConfig.getFastSyncMinimumPeerCount());
-      fastSyncTask = scheduler.scheduleServiceTask(waitForPeersTask);
-    }
-    return exceptionallyCompose(
-            fastSyncTask,
-            error -> {
-              if (ExceptionUtils.rootCause(error) instanceof TimeoutException) {
-                if (ethContext.getEthPeers().availablePeerCount() > 0) {
-                  LOG.warn(
-                      "Fast sync timed out before minimum peer count was reached. Continuing with reduced peers.");
-                  return completedFuture(null);
-                } else {
-                  LOG.warn(
-                      "Maximum wait time for fast sync reached but no peers available. Continuing to wait for any available peer.");
-                  return waitForAnyPeer();
-                }
-              } else if (error != null) {
-                LOG.error("Failed to find peers for fast sync", error);
-                return completedExceptionally(error);
-              }
-              return null;
-            })
+    LOG.debug("Waiting for at least {} peers.", syncConfig.getFastSyncMinimumPeerCount());
+    return ethContext
+        .getScheduler()
+        .scheduleServiceTask(waitForPeersTask)
         .thenApply(successfulWaitResult -> fastSyncState);
   }
 
@@ -139,6 +124,8 @@ public class FastSyncActions<C> {
                 throw new FastSyncException(CHAIN_TOO_SHORT);
               } else {
                 LOG.info("Selecting block number {} as fast sync pivot block.", pivotBlockNumber);
+                pivotBlockSelectionCounter.inc();
+                pivotBlockGauge.set(pivotBlockNumber);
                 return completedFuture(new FastSyncState(pivotBlockNumber));
               }
             })

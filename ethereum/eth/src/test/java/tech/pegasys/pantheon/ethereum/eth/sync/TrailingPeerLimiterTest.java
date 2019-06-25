@@ -29,7 +29,7 @@ import tech.pegasys.pantheon.ethereum.core.Hash;
 import tech.pegasys.pantheon.ethereum.eth.manager.ChainState;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthPeer;
 import tech.pegasys.pantheon.ethereum.eth.manager.EthPeers;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.util.uint.UInt256;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class TrailingPeerLimiterTest {
 
   @Before
   public void setUp() {
-    when(ethPeers.availablePeers()).then(invocation -> peers.stream());
+    when(ethPeers.streamAvailablePeers()).then(invocation -> peers.stream());
   }
 
   @Test

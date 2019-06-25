@@ -14,8 +14,17 @@ package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eea;
 
 public class EeaTransactions {
 
-  public EeaGetTransactionReceiptTransaction getTransactionReceipt(
-      final String transactionHash, final String pubKey) {
-    return new EeaGetTransactionReceiptTransaction(transactionHash, pubKey);
+  public EeaGetTransactionReceiptTransaction getTransactionReceipt(final String transactionHash) {
+    return new EeaGetTransactionReceiptTransaction(transactionHash);
+  }
+
+  public EeaGetTransactionCountTransaction getTransactionCount(
+      final String address, final String privacyGroupId) {
+    return new EeaGetTransactionCountTransaction(address, privacyGroupId);
+  }
+
+  public EeaGetTransactionReceiptTransaction getPrivateTransactionReceipt(
+      final String transactionHash) {
+    return new EeaGetTransactionReceiptTransaction(transactionHash);
   }
 }

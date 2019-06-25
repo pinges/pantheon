@@ -59,7 +59,22 @@ public class TransactionReceipt {
       final long cumulativeGasUsed,
       final List<Log> logs,
       final Optional<String> revertReason) {
-    this(stateRoot, NONEXISTENT, cumulativeGasUsed, logs, revertReason);
+    this(
+        stateRoot,
+        NONEXISTENT,
+        cumulativeGasUsed,
+        logs,
+        LogsBloomFilter.compute(logs),
+        revertReason);
+  }
+
+  private TransactionReceipt(
+      final Hash stateRoot,
+      final long cumulativeGasUsed,
+      final List<Log> logs,
+      final LogsBloomFilter bloomFilter,
+      final Optional<String> revertReason) {
+    this(stateRoot, NONEXISTENT, cumulativeGasUsed, logs, bloomFilter, revertReason);
   }
 
   /**
@@ -74,7 +89,16 @@ public class TransactionReceipt {
       final long cumulativeGasUsed,
       final List<Log> logs,
       final Optional<String> revertReason) {
-    this(null, status, cumulativeGasUsed, logs, revertReason);
+    this(null, status, cumulativeGasUsed, logs, LogsBloomFilter.compute(logs), revertReason);
+  }
+
+  private TransactionReceipt(
+      final int status,
+      final long cumulativeGasUsed,
+      final List<Log> logs,
+      final LogsBloomFilter bloomFilter,
+      final Optional<String> revertReason) {
+    this(null, status, cumulativeGasUsed, logs, bloomFilter, revertReason);
   }
 
   private TransactionReceipt(
@@ -82,12 +106,13 @@ public class TransactionReceipt {
       final int status,
       final long cumulativeGasUsed,
       final List<Log> logs,
+      final LogsBloomFilter bloomFilter,
       final Optional<String> revertReason) {
     this.stateRoot = stateRoot;
     this.cumulativeGasUsed = cumulativeGasUsed;
     this.status = status;
     this.logs = logs;
-    this.bloomFilter = LogsBloomFilter.compute(logs);
+    this.bloomFilter = bloomFilter;
     transactionReceiptType =
         stateRoot == null ? TransactionReceiptType.STATUS : TransactionReceiptType.ROOT;
     this.revertReason = revertReason;
@@ -141,7 +166,7 @@ public class TransactionReceipt {
       final long cumulativeGas = input.readLongScalar();
       // The logs below will populate the bloom filter upon construction.
       // TODO consider validating that the logs and bloom filter match.
-      input.skipNext();
+      final LogsBloomFilter bloomFilter = LogsBloomFilter.readFrom(input);
       final List<Log> logs = input.readList(Log::readFrom);
       final Optional<String> revertReason;
       if (input.isEndOfCurrentList()) {
@@ -155,10 +180,10 @@ public class TransactionReceipt {
       // byte for success (0x01) or failure (0x80).
       if (firstElement.raw().size() == 1) {
         final int status = firstElement.readIntScalar();
-        return new TransactionReceipt(status, cumulativeGas, logs, revertReason);
+        return new TransactionReceipt(status, cumulativeGas, logs, bloomFilter, revertReason);
       } else {
         final Hash stateRoot = Hash.wrap(firstElement.readBytes32());
-        return new TransactionReceipt(stateRoot, cumulativeGas, logs, revertReason);
+        return new TransactionReceipt(stateRoot, cumulativeGas, logs, bloomFilter, revertReason);
       }
     } finally {
       input.leaveList();

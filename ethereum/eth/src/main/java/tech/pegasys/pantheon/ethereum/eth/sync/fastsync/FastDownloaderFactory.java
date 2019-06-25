@@ -21,12 +21,12 @@ import tech.pegasys.pantheon.ethereum.eth.sync.state.SyncState;
 import tech.pegasys.pantheon.ethereum.eth.sync.worldstate.NodeDataRequest;
 import tech.pegasys.pantheon.ethereum.eth.sync.worldstate.WorldStateDownloader;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
-import tech.pegasys.pantheon.ethereum.mainnet.ScheduleBasedBlockHashFunction;
+import tech.pegasys.pantheon.ethereum.mainnet.ScheduleBasedBlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.worldstate.WorldStateStorage;
-import tech.pegasys.pantheon.metrics.MetricCategory;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
+import tech.pegasys.pantheon.metrics.PantheonMetricCategory;
 import tech.pegasys.pantheon.services.tasks.CachingTaskCollection;
-import tech.pegasys.pantheon.services.tasks.RocksDbTaskQueue;
+import tech.pegasys.pantheon.services.tasks.FlatFileTaskCollection;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -57,7 +57,7 @@ public class FastDownloaderFactory {
     final FastSyncStateStorage fastSyncStateStorage =
         new FastSyncStateStorage(fastSyncDataDirectory);
     final FastSyncState fastSyncState =
-        fastSyncStateStorage.loadState(ScheduleBasedBlockHashFunction.create(protocolSchedule));
+        fastSyncStateStorage.loadState(ScheduleBasedBlockHeaderFunctions.create(protocolSchedule));
     if (!fastSyncState.getPivotBlockHeader().isPresent()
         && protocolContext.getBlockchain().getChainHeadBlockNumber()
             != BlockHeader.GENESIS_BLOCK_NUMBER) {
@@ -119,20 +119,17 @@ public class FastDownloaderFactory {
       final Path dataDirectory, final MetricsSystem metricsSystem) {
     final CachingTaskCollection<NodeDataRequest> taskCollection =
         new CachingTaskCollection<>(
-            RocksDbTaskQueue.create(
-                dataDirectory,
-                NodeDataRequest::serialize,
-                NodeDataRequest::deserialize,
-                metricsSystem));
+            new FlatFileTaskCollection<>(
+                dataDirectory, NodeDataRequest::serialize, NodeDataRequest::deserialize));
 
     metricsSystem.createLongGauge(
-        MetricCategory.SYNCHRONIZER,
+        PantheonMetricCategory.SYNCHRONIZER,
         "world_state_pending_requests_current",
         "Number of pending requests for fast sync world state download",
         taskCollection::size);
 
     metricsSystem.createIntegerGauge(
-        MetricCategory.SYNCHRONIZER,
+        PantheonMetricCategory.SYNCHRONIZER,
         "world_state_pending_requests_cache_size",
         "Pending request cache size for fast sync world state download",
         taskCollection::cacheSize);

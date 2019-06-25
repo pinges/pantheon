@@ -13,7 +13,7 @@
 package tech.pegasys.pantheon.ethereum.permissioning;
 
 import tech.pegasys.pantheon.ethereum.core.Address;
-import tech.pegasys.pantheon.util.enode.EnodeURL;
+import tech.pegasys.pantheon.ethereum.p2p.peers.EnodeURL;
 
 import java.net.URI;
 import java.util.List;
@@ -30,7 +30,7 @@ public class PermissioningConfigurationBuilder {
   public static SmartContractPermissioningConfiguration smartContractPermissioningConfiguration(
       final Address address, final boolean smartContractPermissionedNodeEnabled) {
     SmartContractPermissioningConfiguration config = new SmartContractPermissioningConfiguration();
-    config.setSmartContractAddress(address);
+    config.setNodeSmartContractAddress(address);
     config.setSmartContractNodeWhitelistEnabled(smartContractPermissionedNodeEnabled);
     return config;
   }
@@ -110,7 +110,7 @@ public class PermissioningConfigurationBuilder {
                 .collect(Collectors.toList());
 
         accountsWhitelistToml.stream()
-            .filter(s -> !AccountWhitelistController.isValidAccountString(s))
+            .filter(s -> !AccountLocalConfigPermissioningController.isValidAccountString(s))
             .findFirst()
             .ifPresent(
                 s -> {

@@ -14,6 +14,7 @@ package tech.pegasys.pantheon.ethereum.mainnet;
 
 import tech.pegasys.pantheon.ethereum.core.Account;
 import tech.pegasys.pantheon.ethereum.core.Transaction;
+import tech.pegasys.pantheon.ethereum.core.TransactionFilter;
 
 /** Validates transaction based on some criteria. */
 public interface TransactionValidator {
@@ -44,8 +45,17 @@ public interface TransactionValidator {
    *     Optional} containing a {@link TransactionInvalidReason} that identifies why the transaction
    *     is invalid.
    */
+  default ValidationResult<TransactionInvalidReason> validateForSender(
+      final Transaction transaction, final Account sender, final boolean allowFutureNonce) {
+    final TransactionValidationParams validationParams =
+        new TransactionValidationParams.Builder().allowFutureNonce(allowFutureNonce).build();
+    return validateForSender(transaction, sender, validationParams);
+  }
+
   ValidationResult<TransactionInvalidReason> validateForSender(
-      Transaction transaction, Account sender, boolean allowFutureNonce);
+      Transaction transaction, Account sender, TransactionValidationParams validationParams);
+
+  void setTransactionFilter(TransactionFilter transactionFilter);
 
   enum TransactionInvalidReason {
     WRONG_CHAIN_ID,
@@ -58,6 +68,9 @@ public interface TransactionValidator {
     EXCEEDS_BLOCK_GAS_LIMIT,
     TX_SENDER_NOT_AUTHORIZED,
     CHAIN_HEAD_WORLD_STATE_NOT_AVAILABLE,
-    PRIVATE_TRANSACTION_FAILED
+    // Private Transaction Invalid Reasons
+    PRIVATE_TRANSACTION_FAILED,
+    PRIVATE_NONCE_TOO_LOW,
+    INCORRECT_PRIVATE_NONCE
   }
 }

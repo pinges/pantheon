@@ -13,15 +13,17 @@
 package tech.pegasys.pantheon.ethereum.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.toSet;
 import static tech.pegasys.pantheon.ethereum.core.InMemoryStorageProvider.createInMemoryWorldStateArchive;
 
 import tech.pegasys.pantheon.crypto.SECP256K1;
-import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockHashFunction;
+import tech.pegasys.pantheon.ethereum.mainnet.MainnetBlockHeaderFunctions;
 import tech.pegasys.pantheon.ethereum.worldstate.WorldStateArchive;
 import tech.pegasys.pantheon.util.bytes.Bytes32;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
 import tech.pegasys.pantheon.util.uint.UInt256;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 public class BlockDataGenerator {
   private final Random random;
@@ -220,7 +224,7 @@ public class BlockDataGenerator {
         .extraData(options.getExtraData(bytes32()))
         .mixHash(hash())
         .nonce(blockNonce)
-        .blockHashFunction(options.getBlockHashFunction(MainnetBlockHashFunction::createHash))
+        .blockHeaderFunctions(options.getBlockHeaderFunctions(new MainnetBlockHeaderFunctions()))
         .buildBlockHeader();
   }
 
@@ -241,6 +245,18 @@ public class BlockDataGenerator {
     return new BlockBody(options.getTransactions(defaultTxs), ommers);
   }
 
+  public Transaction transaction(final BytesValue payload) {
+    return Transaction.builder()
+        .nonce(positiveLong())
+        .gasPrice(Wei.wrap(bytes32()))
+        .gasLimit(positiveLong())
+        .to(address())
+        .value(Wei.wrap(bytes32()))
+        .payload(payload)
+        .chainId(BigInteger.ONE)
+        .signAndBuild(SECP256K1.KeyPair.generate());
+  }
+
   public Transaction transaction() {
     return Transaction.builder()
         .nonce(positiveLong())
@@ -249,8 +265,36 @@ public class BlockDataGenerator {
         .to(address())
         .value(Wei.wrap(bytes32()))
         .payload(bytes32())
-        .chainId(1)
+        .chainId(BigInteger.ONE)
         .signAndBuild(SECP256K1.KeyPair.generate());
+  }
+
+  public Set<Transaction> transactions(final int n) {
+    Wei gasPrice = Wei.wrap(bytes32());
+    long gasLimit = positiveLong();
+    Address to = address();
+    Wei value = Wei.wrap(bytes32());
+    int chainId = 1;
+    Bytes32 payload = bytes32();
+    SECP256K1.Signature signature = SECP256K1.sign(payload, SECP256K1.KeyPair.generate());
+
+    final Set<Transaction> txs =
+        IntStream.range(0, n)
+            .parallel()
+            .mapToObj(
+                v ->
+                    new Transaction(
+                        v,
+                        gasPrice,
+                        gasLimit,
+                        Optional.of(to),
+                        value,
+                        signature,
+                        payload,
+                        to,
+                        Optional.of(BigInteger.valueOf(chainId))))
+            .collect(toSet());
+    return txs;
   }
 
   public TransactionReceipt receipt(final long cumulativeGasUsed) {
@@ -360,7 +404,7 @@ public class BlockDataGenerator {
     private Optional<UInt256> difficulty = Optional.empty();
     private Optional<List<Transaction>> transactions = Optional.empty();
     private Optional<BytesValue> extraData = Optional.empty();
-    private Optional<BlockHashFunction> blockHashFunction = Optional.empty();
+    private Optional<BlockHeaderFunctions> blockHeaderFunctions = Optional.empty();
 
     public static BlockOptions create() {
       return new BlockOptions();
@@ -390,8 +434,8 @@ public class BlockDataGenerator {
       return extraData.orElse(defaultValue);
     }
 
-    public BlockHashFunction getBlockHashFunction(final BlockHashFunction defaultValue) {
-      return blockHashFunction.orElse(defaultValue);
+    public BlockHeaderFunctions getBlockHeaderFunctions(final BlockHeaderFunctions defaultValue) {
+      return blockHeaderFunctions.orElse(defaultValue);
     }
 
     public BlockOptions addTransaction(final Transaction... tx) {
@@ -427,8 +471,8 @@ public class BlockDataGenerator {
       return this;
     }
 
-    public BlockOptions setBlockHashFunction(final BlockHashFunction blockHashFunction) {
-      this.blockHashFunction = Optional.of(blockHashFunction);
+    public BlockOptions setBlockHeaderFunctions(final BlockHeaderFunctions blockHeaderFunctions) {
+      this.blockHeaderFunctions = Optional.of(blockHeaderFunctions);
       return this;
     }
   }

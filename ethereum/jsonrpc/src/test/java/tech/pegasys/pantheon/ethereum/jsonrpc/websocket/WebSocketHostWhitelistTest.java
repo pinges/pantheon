@@ -19,7 +19,9 @@ import static org.mockito.Mockito.spy;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.methods.JsonRpcMethod;
 import tech.pegasys.pantheon.ethereum.jsonrpc.websocket.methods.WebSocketMethodsFactory;
 import tech.pegasys.pantheon.ethereum.jsonrpc.websocket.subscription.SubscriptionManager;
+import tech.pegasys.pantheon.metrics.noop.NoOpMetricsSystem;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,23 +58,29 @@ public class WebSocketHostWhitelistTest {
   private WebSocketService websocketService;
   private HttpClient httpClient;
   private static final int VERTX_AWAIT_TIMEOUT_MILLIS = 10000;
+  private int websocketPort;
 
   @Before
   public void initServerAndClient() {
+    webSocketConfiguration.setPort(0);
     vertx = Vertx.vertx();
 
     final Map<String, JsonRpcMethod> websocketMethods =
-        new WebSocketMethodsFactory(new SubscriptionManager(), new HashMap<>()).methods();
+        new WebSocketMethodsFactory(
+                new SubscriptionManager(new NoOpMetricsSystem()), new HashMap<>())
+            .methods();
     webSocketRequestHandlerSpy = spy(new WebSocketRequestHandler(vertx, websocketMethods));
 
     websocketService =
         new WebSocketService(vertx, webSocketConfiguration, webSocketRequestHandlerSpy);
     websocketService.start().join();
+    final InetSocketAddress inetSocketAddress = websocketService.socketAddress();
 
+    websocketPort = inetSocketAddress.getPort();
     final HttpClientOptions httpClientOptions =
         new HttpClientOptions()
             .setDefaultHost(webSocketConfiguration.getHost())
-            .setDefaultPort(webSocketConfiguration.getPort());
+            .setDefaultPort(websocketPort);
 
     httpClient = vertx.createHttpClient(httpClientOptions);
   }
@@ -171,7 +179,7 @@ public class WebSocketHostWhitelistTest {
 
     final HttpClientRequest request =
         httpClient.post(
-            webSocketConfiguration.getPort(),
+            websocketPort,
             webSocketConfiguration.getHost(),
             "/",
             response -> {

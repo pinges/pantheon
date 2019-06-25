@@ -16,8 +16,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static tech.pegasys.pantheon.metrics.MetricCategory.PEERS;
-import static tech.pegasys.pantheon.metrics.MetricCategory.RPC;
+import static tech.pegasys.pantheon.metrics.PantheonMetricCategory.PEERS;
+import static tech.pegasys.pantheon.metrics.PantheonMetricCategory.RPC;
 
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.JsonRpcRequest;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcSuccessResponse;
@@ -45,7 +45,7 @@ public class DebugMetricsTest {
 
   @Test
   public void shouldReportUnlabelledObservationsByCategory() {
-    when(metricsSystem.getMetrics())
+    when(metricsSystem.streamObservations())
         .thenReturn(
             Stream.of(
                 new Observation(PEERS, "peer1", "peer1Value", Collections.emptyList()),
@@ -62,7 +62,7 @@ public class DebugMetricsTest {
 
   @Test
   public void shouldNestObservationsByLabel() {
-    when(metricsSystem.getMetrics())
+    when(metricsSystem.streamObservations())
         .thenReturn(
             Stream.of(
                 new Observation(PEERS, "peer1", "value1", asList("label1A", "label2A")),

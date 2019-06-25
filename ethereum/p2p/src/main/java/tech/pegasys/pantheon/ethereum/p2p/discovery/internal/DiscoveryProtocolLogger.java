@@ -15,8 +15,8 @@ package tech.pegasys.pantheon.ethereum.p2p.discovery.internal;
 import tech.pegasys.pantheon.ethereum.p2p.peers.Peer;
 import tech.pegasys.pantheon.metrics.Counter;
 import tech.pegasys.pantheon.metrics.LabelledMetric;
-import tech.pegasys.pantheon.metrics.MetricCategory;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
+import tech.pegasys.pantheon.metrics.PantheonMetricCategory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,13 +30,13 @@ public class DiscoveryProtocolLogger {
   public DiscoveryProtocolLogger(final MetricsSystem metricsSystem) {
     outgoingMessageCounter =
         metricsSystem.createLabelledCounter(
-            MetricCategory.NETWORK,
+            PantheonMetricCategory.NETWORK,
             "discovery_messages_outbound",
             "Total number of P2P discovery messages sent",
             "name");
     incomingMessageCounter =
         metricsSystem.createLabelledCounter(
-            MetricCategory.NETWORK,
+            PantheonMetricCategory.NETWORK,
             "discovery_messages_inbound",
             "Total number of P2P discovery messages received",
             "name");
@@ -48,7 +48,7 @@ public class DiscoveryProtocolLogger {
         "<<< Sending  {} packet to peer {} ({}): {}",
         shortenPacketType(packet),
         peer.getId().slice(0, 16),
-        peer.getEndpoint(),
+        peer.getEnodeURL(),
         packet);
   }
 
@@ -58,7 +58,7 @@ public class DiscoveryProtocolLogger {
         ">>> Received {} packet from peer {} ({}): {}",
         shortenPacketType(packet),
         peer.getId().slice(0, 16),
-        peer.getEndpoint(),
+        peer.getEnodeURL(),
         packet);
   }
 

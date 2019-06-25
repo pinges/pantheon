@@ -12,6 +12,7 @@
  */
 package tech.pegasys.pantheon.ethereum.eth.sync.tasks;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Arrays.asList;
 
 import tech.pegasys.pantheon.ethereum.ProtocolContext;
@@ -28,7 +29,7 @@ import tech.pegasys.pantheon.ethereum.eth.sync.tasks.exceptions.InvalidBlockExce
 import tech.pegasys.pantheon.ethereum.mainnet.BlockHeaderValidator;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSchedule;
 import tech.pegasys.pantheon.ethereum.mainnet.ProtocolSpec;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.metrics.MetricsSystem;
 
 import java.util.Arrays;
@@ -82,6 +83,7 @@ public class DownloadHeaderSequenceTask<C> extends AbstractRetryingPeerTask<List
     this.validationPolicy = validationPolicy;
     this.metricsSystem = metricsSystem;
 
+    checkArgument(segmentLength > 0, "Segment length must not be 0");
     startingBlockNumber = referenceHeader.getNumber() - segmentLength;
     headers = new BlockHeader[segmentLength];
     lastFilledHeaderIndex = segmentLength;

@@ -12,12 +12,11 @@
  */
 package tech.pegasys.pantheon.ethereum.permissioning.node;
 
-import tech.pegasys.pantheon.util.enode.EnodeURL;
+import tech.pegasys.pantheon.ethereum.p2p.peers.EnodeURL;
 
 import java.util.Collections;
 import java.util.List;
-
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 public class NodeWhitelistUpdatedEvent {
 
@@ -47,12 +46,12 @@ public class NodeWhitelistUpdatedEvent {
       return false;
     }
     NodeWhitelistUpdatedEvent that = (NodeWhitelistUpdatedEvent) o;
-    return Objects.equal(addedNodes, that.addedNodes)
-        && Objects.equal(removedNodes, that.removedNodes);
+    return Objects.equals(addedNodes, that.addedNodes)
+        && Objects.equals(removedNodes, that.removedNodes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(addedNodes, removedNodes);
+    return Objects.hash(addedNodes, removedNodes);
   }
 }

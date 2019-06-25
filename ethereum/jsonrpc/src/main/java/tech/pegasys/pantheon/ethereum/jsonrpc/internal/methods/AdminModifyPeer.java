@@ -18,17 +18,13 @@ import tech.pegasys.pantheon.ethereum.jsonrpc.internal.parameters.JsonRpcParamet
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcError;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcErrorResponse;
 import tech.pegasys.pantheon.ethereum.jsonrpc.internal.response.JsonRpcResponse;
-import tech.pegasys.pantheon.ethereum.p2p.P2pDisabledException;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.network.exceptions.P2PDisabledException;
 
 public abstract class AdminModifyPeer implements JsonRpcMethod {
 
   protected final JsonRpcParameter parameters;
   protected final P2PNetwork peerNetwork;
-  private static final Logger LOG = LogManager.getLogger();
 
   public AdminModifyPeer(final P2PNetwork peerNetwork, final JsonRpcParameter parameters) {
     this.peerNetwork = peerNetwork;
@@ -46,12 +42,15 @@ public abstract class AdminModifyPeer implements JsonRpcMethod {
     } catch (final InvalidJsonRpcParameters e) {
       return new JsonRpcErrorResponse(req.getId(), JsonRpcError.INVALID_PARAMS);
     } catch (final IllegalArgumentException e) {
-      return new JsonRpcErrorResponse(req.getId(), JsonRpcError.PARSE_ERROR);
-    } catch (final P2pDisabledException e) {
+      if (e.getMessage()
+          .endsWith(
+              "Invalid node ID: node ID must have exactly 128 hexadecimal characters and should not include any '0x' hex prefix.")) {
+        return new JsonRpcErrorResponse(req.getId(), JsonRpcError.ENODE_ID_INVALID);
+      } else {
+        return new JsonRpcErrorResponse(req.getId(), JsonRpcError.PARSE_ERROR);
+      }
+    } catch (final P2PDisabledException e) {
       return new JsonRpcErrorResponse(req.getId(), JsonRpcError.P2P_DISABLED);
-    } catch (final Exception e) {
-      LOG.error(getName() + " - Error processing request: " + req, e);
-      throw e;
     }
   }
 

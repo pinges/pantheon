@@ -29,8 +29,8 @@ public class SyncState {
 
   private final long startingBlock;
   private boolean lastInSync = true;
-  private final Subscribers<InSyncListener> inSyncListeners = new Subscribers<>();
-  private final Subscribers<SyncStatusListener> syncStatusListeners = new Subscribers<>();
+  private final Subscribers<InSyncListener> inSyncListeners = Subscribers.create();
+  private final Subscribers<SyncStatusListener> syncStatusListeners = Subscribers.create();
   private Optional<SyncTarget> syncTarget = Optional.empty();
   private long chainHeightListenerId;
 
@@ -74,21 +74,19 @@ public class SyncState {
     return syncTarget;
   }
 
-  public SyncTarget setSyncTarget(final EthPeer peer, final BlockHeader commonAncestor) {
+  public void setSyncTarget(final EthPeer peer, final BlockHeader commonAncestor) {
     final SyncTarget syncTarget = new SyncTarget(peer, commonAncestor);
     replaceSyncTarget(Optional.of(syncTarget));
-    return syncTarget;
   }
 
   public boolean isInSync() {
-    return syncTarget
-        .map(
-            t -> t.estimatedTargetHeight() - blockchain.getChainHeadBlockNumber() <= SYNC_TOLERANCE)
-        .orElse(true);
+    return isInSync(SYNC_TOLERANCE);
   }
 
-  public void setCommonAncestor(final BlockHeader commonAncestor) {
-    syncTarget.ifPresent(target -> target.setCommonAncestor(commonAncestor));
+  public boolean isInSync(final long syncTolerance) {
+    return syncTarget
+        .map(t -> t.estimatedTargetHeight() - blockchain.getChainHeadBlockNumber() <= syncTolerance)
+        .orElse(true);
   }
 
   public void clearSyncTarget() {

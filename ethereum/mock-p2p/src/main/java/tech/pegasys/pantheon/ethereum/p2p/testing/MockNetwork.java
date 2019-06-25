@@ -12,21 +12,23 @@
  */
 package tech.pegasys.pantheon.ethereum.p2p.testing;
 
-import tech.pegasys.pantheon.ethereum.p2p.api.DisconnectCallback;
-import tech.pegasys.pantheon.ethereum.p2p.api.Message;
-import tech.pegasys.pantheon.ethereum.p2p.api.MessageData;
-import tech.pegasys.pantheon.ethereum.p2p.api.P2PNetwork;
-import tech.pegasys.pantheon.ethereum.p2p.api.PeerConnection;
-import tech.pegasys.pantheon.ethereum.p2p.peers.DefaultPeer;
+import tech.pegasys.pantheon.ethereum.p2p.discovery.DiscoveryPeer;
+import tech.pegasys.pantheon.ethereum.p2p.network.P2PNetwork;
+import tech.pegasys.pantheon.ethereum.p2p.peers.EnodeURL;
 import tech.pegasys.pantheon.ethereum.p2p.peers.Peer;
-import tech.pegasys.pantheon.ethereum.p2p.wire.Capability;
-import tech.pegasys.pantheon.ethereum.p2p.wire.DefaultMessage;
-import tech.pegasys.pantheon.ethereum.p2p.wire.PeerInfo;
-import tech.pegasys.pantheon.ethereum.p2p.wire.messages.DisconnectMessage.DisconnectReason;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.ConnectCallback;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.DisconnectCallback;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.MessageCallback;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.connections.PeerConnection;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.Capability;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.DefaultMessage;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.Message;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.MessageData;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.PeerInfo;
+import tech.pegasys.pantheon.ethereum.p2p.rlpx.wire.messages.DisconnectMessage.DisconnectReason;
 import tech.pegasys.pantheon.util.Subscribers;
-import tech.pegasys.pantheon.util.enode.EnodeURL;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,7 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Mock network implementation that allows passing {@link MessageData} between arbitrary peers. This
@@ -78,8 +80,8 @@ public final class MockNetwork {
       final MockNetwork.MockPeerConnection backChannel =
           new MockNetwork.MockPeerConnection(target, source, this);
       targetNode.connections.put(source, backChannel);
-      sourceNode.connectCallbacks.forEach(c -> c.accept(establishedConnection));
-      targetNode.connectCallbacks.forEach(c -> c.accept(backChannel));
+      sourceNode.connectCallbacks.forEach(c -> c.onConnect(establishedConnection));
+      targetNode.connectCallbacks.forEach(c -> c.onConnect(backChannel));
       return establishedConnection;
     }
   }
@@ -100,7 +102,7 @@ public final class MockNetwork {
     }
   }
 
-  private final class MockP2PNetwork implements P2PNetwork {
+  private static final class MockP2PNetwork implements P2PNetwork {
 
     private final MockNetwork network;
 
@@ -108,12 +110,12 @@ public final class MockNetwork {
 
     private final Peer self;
 
-    private final Map<Capability, Subscribers<Consumer<Message>>> protocolCallbacks =
+    private final Map<Capability, Subscribers<MessageCallback>> protocolCallbacks =
         new ConcurrentHashMap<>();
 
-    private final Subscribers<Consumer<PeerConnection>> connectCallbacks = new Subscribers<>();
+    private final Subscribers<ConnectCallback> connectCallbacks = Subscribers.create();
 
-    private final Subscribers<DisconnectCallback> disconnectCallbacks = new Subscribers<>();
+    private final Subscribers<DisconnectCallback> disconnectCallbacks = Subscribers.create();
 
     MockP2PNetwork(final Peer self, final MockNetwork network) {
       this.self = self;
@@ -125,6 +127,11 @@ public final class MockNetwork {
       synchronized (network) {
         return new ArrayList<>(connections.values());
       }
+    }
+
+    @Override
+    public Stream<DiscoveryPeer> streamDiscoveredPeers() {
+      return Stream.empty();
     }
 
     @Override
@@ -148,12 +155,14 @@ public final class MockNetwork {
     }
 
     @Override
-    public void subscribe(final Capability capability, final Consumer<Message> callback) {
-      protocolCallbacks.computeIfAbsent(capability, key -> new Subscribers<>()).subscribe(callback);
+    public void subscribe(final Capability capability, final MessageCallback callback) {
+      protocolCallbacks
+          .computeIfAbsent(capability, key -> Subscribers.create())
+          .subscribe(callback);
     }
 
     @Override
-    public void subscribeConnect(final Consumer<PeerConnection> callback) {
+    public void subscribeConnect(final ConnectCallback callback) {
       connectCallbacks.subscribe(callback);
     }
 
@@ -179,21 +188,10 @@ public final class MockNetwork {
     public void awaitStop() {}
 
     @Override
-    public Optional<Peer> getAdvertisedPeer() {
-      return Optional.of(new DefaultPeer(self.getId(), "127.0.0.1", 0, 0));
-    }
-
-    @Override
     public void start() {}
 
     @Override
     public void close() {}
-
-    @Override
-    public PeerInfo getLocalPeerInfo() {
-      return new PeerInfo(
-          5, self.getId().toString(), new ArrayList<>(capabilities), 0, self.getId());
-    }
 
     @Override
     public boolean isListening() {
@@ -206,7 +204,12 @@ public final class MockNetwork {
     }
 
     @Override
-    public Optional<EnodeURL> getSelfEnodeURL() {
+    public boolean isDiscoveryEnabled() {
+      return true;
+    }
+
+    @Override
+    public Optional<EnodeURL> getLocalEnode() {
       return Optional.empty();
     }
   }
@@ -244,9 +247,9 @@ public final class MockNetwork {
         final MockNetwork.MockPeerConnection backChannel = target.connections.get(from);
         if (backChannel != null) {
           final Message msg = new DefaultMessage(backChannel, message);
-          final Subscribers<Consumer<Message>> callbacks = target.protocolCallbacks.get(capability);
+          final Subscribers<MessageCallback> callbacks = target.protocolCallbacks.get(capability);
           if (callbacks != null) {
-            callbacks.forEach(c -> c.accept(msg));
+            callbacks.forEach(c -> c.onMessage(capability, msg));
           }
         } else {
           throw new PeerNotConnected(String.format("%s not connected to %s", to, from));
@@ -260,12 +263,17 @@ public final class MockNetwork {
     }
 
     @Override
-    public PeerInfo getPeer() {
+    public Peer getPeer() {
+      return to;
+    }
+
+    @Override
+    public PeerInfo getPeerInfo() {
       return new PeerInfo(
           5,
           "mock-network-client",
           capabilities,
-          to.getEndpoint().getTcpPort().getAsInt(),
+          to.getEnodeURL().getListeningPortOrZero(),
           to.getId());
     }
 
@@ -287,12 +295,12 @@ public final class MockNetwork {
     }
 
     @Override
-    public SocketAddress getLocalAddress() {
+    public InetSocketAddress getLocalAddress() {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public SocketAddress getRemoteAddress() {
+    public InetSocketAddress getRemoteAddress() {
       throw new UnsupportedOperationException();
     }
   }

@@ -14,8 +14,12 @@ package tech.pegasys.pantheon.ethereum.mainnet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import tech.pegasys.pantheon.ethereum.core.TransactionFilter;
+
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -25,14 +29,14 @@ public class MutableProtocolSchedule<C> implements ProtocolSchedule<C> {
       new TreeSet<>(
           Comparator.<ScheduledProtocolSpec<C>, Long>comparing(ScheduledProtocolSpec::getBlock)
               .reversed());
-  private final int chainId;
+  private final Optional<BigInteger> chainId;
 
-  public MutableProtocolSchedule(final int chainId) {
+  public MutableProtocolSchedule(final Optional<BigInteger> chainId) {
     this.chainId = chainId;
   }
 
   @Override
-  public int getChainId() {
+  public Optional<BigInteger> getChainId() {
     return chainId;
   }
 
@@ -66,5 +70,10 @@ public class MutableProtocolSchedule<C> implements ProtocolSchedule<C> {
         .sorted(Comparator.comparing(ScheduledProtocolSpec::getBlock))
         .map(spec -> spec.getSpec().getName() + ": " + spec.getBlock())
         .collect(Collectors.joining(", ", "[", "]"));
+  }
+
+  @Override
+  public void setTransactionFilter(final TransactionFilter transactionFilter) {
+    protocolSpecs.forEach(spec -> spec.getSpec().setTransactionFilter(transactionFilter));
   }
 }
