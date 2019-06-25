@@ -25,7 +25,22 @@ public class TransactionReceiptTest {
     final BlockDataGenerator gen = new BlockDataGenerator();
     final TransactionReceipt receipt = gen.receipt();
     final TransactionReceipt copy =
-        TransactionReceipt.readFrom(RLP.input(RLP.encode(receipt::writeTo)));
+        TransactionReceipt.readFrom(
+            RLP.input(
+                RLP.encode(
+                    receipt
+                        ::writeToWithReason))); // STEFAN: needs to write the "reason" if available.
+    // We will
+    // have to add a test with a reason!!!!
+    assertEquals(receipt, copy);
+  }
+
+  @Test
+  public void toFromRlpWithReason() {
+    final BlockDataGenerator gen = new BlockDataGeneratorWithReason();
+    final TransactionReceipt receipt = gen.receipt();
+    final TransactionReceipt copy =
+        TransactionReceipt.readFrom(RLP.input(RLP.encode(receipt::writeToWithReason)));
     assertEquals(receipt, copy);
   }
 }

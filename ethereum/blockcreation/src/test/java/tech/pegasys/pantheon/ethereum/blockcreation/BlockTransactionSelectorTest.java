@@ -54,6 +54,7 @@ import tech.pegasys.pantheon.util.uint.UInt256;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.google.common.collect.Lists;
@@ -121,7 +122,9 @@ public class BlockTransactionSelectorTest {
 
     when(transactionProcessor.processTransaction(
             any(), any(), any(), eq(transaction), any(), any(), any()))
-        .thenReturn(MainnetTransactionProcessor.Result.failed(5, ValidationResult.valid()));
+        .thenReturn(
+            MainnetTransactionProcessor.Result.failed(
+                5, ValidationResult.valid(), Optional.empty()));
 
     final Blockchain blockchain = new TestBlockchain();
     final DefaultMutableWorldState worldState = inMemoryWorldState();
@@ -574,7 +577,8 @@ public class BlockTransactionSelectorTest {
   // This is a duplicate of the MainnetProtocolSpec::frontierTransactionReceiptFactory
   private TransactionReceipt createReceipt(
       final TransactionProcessor.Result result, final WorldState worldState, final long gasUsed) {
-    return new TransactionReceipt(worldState.rootHash(), gasUsed, Lists.newArrayList());
+    return new TransactionReceipt(
+        worldState.rootHash(), gasUsed, Lists.newArrayList(), Optional.empty());
   }
 
   private DefaultMutableWorldState inMemoryWorldState() {

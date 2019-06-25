@@ -62,7 +62,7 @@ public abstract class MainnetProtocolSpecs {
 
   public static ProtocolSpecBuilder<Void> frontierDefinition(
       final OptionalInt configContractSizeLimit) {
-    int contractSizeLimit = configContractSizeLimit.orElse(FRONTIER_CONTRACT_SIZE_LIMIT);
+    final int contractSizeLimit = configContractSizeLimit.orElse(FRONTIER_CONTRACT_SIZE_LIMIT);
     return new ProtocolSpecBuilder<Void>()
         .gasCalculator(FrontierGasCalculator::new)
         .evmBuilder(MainnetEvmRegistries::frontier)
@@ -113,7 +113,7 @@ public abstract class MainnetProtocolSpecs {
 
   public static ProtocolSpecBuilder<Void> homesteadDefinition(
       final OptionalInt configContractSizeLimit) {
-    int contractSizeLimit = configContractSizeLimit.orElse(FRONTIER_CONTRACT_SIZE_LIMIT);
+    final int contractSizeLimit = configContractSizeLimit.orElse(FRONTIER_CONTRACT_SIZE_LIMIT);
     return frontierDefinition(configContractSizeLimit)
         .gasCalculator(HomesteadGasCalculator::new)
         .evmBuilder(MainnetEvmRegistries::homestead)
@@ -238,12 +238,14 @@ public abstract class MainnetProtocolSpecs {
 
   private static TransactionReceipt frontierTransactionReceiptFactory(
       final TransactionProcessor.Result result, final WorldState worldState, final long gasUsed) {
-    return new TransactionReceipt(worldState.rootHash(), gasUsed, result.getLogs());
+    return new TransactionReceipt(
+        worldState.rootHash(), gasUsed, result.getLogs(), result.getRevertReason());
   }
 
   private static TransactionReceipt byzantiumTransactionReceiptFactory(
       final TransactionProcessor.Result result, final WorldState worldState, final long gasUsed) {
-    return new TransactionReceipt(result.isSuccessful() ? 1 : 0, gasUsed, result.getLogs());
+    return new TransactionReceipt(
+        result.isSuccessful() ? 1 : 0, gasUsed, result.getLogs(), result.getRevertReason());
   }
 
   private static class DaoBlockProcessor implements BlockProcessor {

@@ -36,6 +36,7 @@ import tech.pegasys.pantheon.util.bytes.BytesValue;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,17 +66,30 @@ public class PrivateTransactionProcessor {
     private final BytesValue output;
 
     private final ValidationResult<TransactionInvalidReason> validationResult;
+    private final Optional<String> revertReason;
 
     public static Result invalid(
         final ValidationResult<TransactionInvalidReason> validationResult) {
-      return new Result(Status.INVALID, LogSeries.empty(), -1, BytesValue.EMPTY, validationResult);
+      return new Result(
+          Status.INVALID,
+          LogSeries.empty(),
+          -1,
+          BytesValue.EMPTY,
+          validationResult,
+          Optional.empty());
     }
 
     public static Result failed(
         final long gasRemaining,
-        final ValidationResult<TransactionInvalidReason> validationResult) {
+        final ValidationResult<TransactionInvalidReason> validationResult,
+        final Optional<String> revertReason) {
       return new Result(
-          Status.FAILED, LogSeries.empty(), gasRemaining, BytesValue.EMPTY, validationResult);
+          Status.FAILED,
+          LogSeries.empty(),
+          gasRemaining,
+          BytesValue.EMPTY,
+          validationResult,
+          revertReason);
     }
 
     public static Result successful(
@@ -83,7 +97,8 @@ public class PrivateTransactionProcessor {
         final long gasRemaining,
         final BytesValue output,
         final ValidationResult<TransactionInvalidReason> validationResult) {
-      return new Result(Status.SUCCESSFUL, logs, gasRemaining, output, validationResult);
+      return new Result(
+          Status.SUCCESSFUL, logs, gasRemaining, output, validationResult, Optional.empty());
     }
 
     Result(
@@ -91,12 +106,14 @@ public class PrivateTransactionProcessor {
         final LogSeries logs,
         final long gasRemaining,
         final BytesValue output,
-        final ValidationResult<TransactionInvalidReason> validationResult) {
+        final ValidationResult<TransactionInvalidReason> validationResult,
+        final Optional<String> revertReason) {
       this.status = status;
       this.logs = logs;
       this.gasRemaining = gasRemaining;
       this.output = output;
       this.validationResult = validationResult;
+      this.revertReason = revertReason;
     }
 
     @Override
@@ -122,6 +139,11 @@ public class PrivateTransactionProcessor {
     @Override
     public ValidationResult<TransactionInvalidReason> getValidationResult() {
       return validationResult;
+    }
+
+    @Override
+    public Optional<String> getRevertReason() {
+      return revertReason;
     }
   }
 
@@ -240,7 +262,9 @@ public class PrivateTransactionProcessor {
           initialFrame.getLogs(), 0, initialFrame.getOutputData(), ValidationResult.valid());
     } else {
       return Result.failed(
-          0, ValidationResult.invalid(TransactionInvalidReason.PRIVATE_TRANSACTION_FAILED));
+          0,
+          ValidationResult.invalid(TransactionInvalidReason.PRIVATE_TRANSACTION_FAILED),
+          initialFrame.getRevertReason());
     }
   }
 
