@@ -111,16 +111,16 @@ public class BlockDataGenerator {
       final int count,
       final float percentContractAccounts,
       final float percentContractAccountsWithNonEmptyStorage) {
-    final WorldUpdater updater = worldState.updater();
-    final List<Account> accounts = new ArrayList<>(count);
+    WorldUpdater updater = worldState.updater();
+    List<Account> accounts = new ArrayList<>(count);
     for (int i = 0; i < count; i++) {
-      final MutableAccount account = updater.getOrCreate(address());
+      MutableAccount account = updater.getOrCreate(address());
       if (random.nextFloat() < percentContractAccounts) {
         // Some percentage of accounts are contract accounts
         account.setCode(bytesValue(5, 50));
         if (random.nextFloat() < percentContractAccountsWithNonEmptyStorage) {
           // Add some storage for contract accounts
-          final int storageValues = random.nextInt(20) + 10;
+          int storageValues = random.nextInt(20) + 10;
           for (int j = 0; j < storageValues; j++) {
             account.setStorageValue(uint256(), uint256());
           }
@@ -143,8 +143,8 @@ public class BlockDataGenerator {
 
   public List<Block> blockSequence(final Block previousBlock, final int count) {
     final WorldStateArchive worldState = createInMemoryWorldStateArchive();
-    final Hash parentHash = previousBlock.getHeader().getHash();
-    final long blockNumber = previousBlock.getHeader().getNumber() + 1;
+    Hash parentHash = previousBlock.getHeader().getHash();
+    long blockNumber = previousBlock.getHeader().getNumber() + 1;
     return blockSequence(
         count,
         blockNumber,

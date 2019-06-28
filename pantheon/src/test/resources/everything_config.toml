@@ -97,3 +97,6 @@ privacy-precompiled-address=9
 tx-pool-retention-hours=999
 
 tx-pool-max-size=1234
+
+# Revert Reaspm
+revert-reason-enabled=false

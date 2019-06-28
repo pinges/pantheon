@@ -13,6 +13,7 @@
 package tech.pegasys.pantheon.ethereum.core;
 
 import tech.pegasys.pantheon.ethereum.mainnet.TransactionReceiptType;
+import tech.pegasys.pantheon.ethereum.rlp.RLPException;
 import tech.pegasys.pantheon.ethereum.rlp.RLPInput;
 import tech.pegasys.pantheon.ethereum.rlp.RLPOutput;
 import tech.pegasys.pantheon.util.bytes.BytesValue;
@@ -127,7 +128,7 @@ public class TransactionReceipt {
     writeTo(out, false);
   }
 
-  public void writeToWithReason(final RLPOutput out) {
+  public void writeToWithRevertReason(final RLPOutput out) {
     writeTo(out, true);
   }
 
@@ -154,9 +155,21 @@ public class TransactionReceipt {
    * Creates a transaction receipt for the given RLP
    *
    * @param input the RLP-encoded transaction receipt
+   * @param b
    * @return the transaction receipt
    */
   public static TransactionReceipt readFrom(final RLPInput input) {
+    return readFrom(input, true);
+  }
+  /**
+   * Creates a transaction receipt for the given RLP
+   *
+   * @param input the RLP-encoded transaction receipt
+   * @param revertReasonAllowed whether the rlp input is allowed to have a revert reason
+   * @return the transaction receipt
+   */
+  public static TransactionReceipt readFrom(
+      final RLPInput input, final boolean revertReasonAllowed) {
     input.enterList();
 
     try {
@@ -172,6 +185,9 @@ public class TransactionReceipt {
       if (input.isEndOfCurrentList()) {
         revertReason = Optional.empty();
       } else {
+        if (!revertReasonAllowed) {
+          throw new RLPException("Unexpected value at end of TransactionReceipt");
+        }
         final byte[] bytes = input.readBytesValue().getArrayUnsafe();
         revertReason = Optional.of(new String(bytes, StandardCharsets.UTF_8));
       }
@@ -239,8 +255,8 @@ public class TransactionReceipt {
     return transactionReceiptType;
   }
 
-  public String getRevertReason() {
-    return revertReason.isPresent() ? revertReason.get() : null;
+  public Optional<String> getRevertReason() {
+    return revertReason;
   }
 
   @Override

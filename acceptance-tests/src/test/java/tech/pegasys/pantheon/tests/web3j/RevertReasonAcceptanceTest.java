@@ -12,25 +12,61 @@
  */
 package tech.pegasys.pantheon.tests.web3j;
 
+import static tech.pegasys.pantheon.tests.acceptance.dsl.ContractUtils.sendWithRevert;
+
 import tech.pegasys.pantheon.tests.acceptance.dsl.AcceptanceTestBase;
+import tech.pegasys.pantheon.tests.acceptance.dsl.node.PantheonNode;
+import tech.pegasys.pantheon.tests.web3j.generated.RevertReason;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 
 public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
 
-  //  private PantheonNode minerNode;
-  //
-  //  @Before
-  //  public void setUp() throws Exception {
-  //    minerNode = pantheon.createMinerNode("miner-node");
-  //    cluster.start(minerNode);
-  //  }
-  //
-  //  @Test
-  //  public void revertWithRevertReason() {
-  //
-  //    final RevertReason revertReasonContract =
-  //        minerNode.execute(transactions.createSmartContract(RevertReason.class));
-  //
-  //    final TransactionReceipt receipt = revertReasonContract.revertWithRevertReason().send();
-  //    send.
-  //  }
+  private PantheonNode minerNode;
+
+  @Before
+  public void setUp() throws Exception {
+    minerNode = pantheon.createMinerNode("miner-node-withRevertReason");
+    cluster.start(minerNode);
+  }
+
+  @Test
+  public void mustRevertWithRevertReason() throws Exception {
+
+    final RevertReason revertReasonContract =
+        minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
+
+    final EthSendTransaction ethSendTransaction =
+        sendWithRevert(
+            RevertReason.FUNC_REVERTWITHREVERTREASON,
+            revertReasonContract.getContractAddress(),
+            minerNode.web3jService());
+
+    minerNode.verify(
+        eth.expectSuccessfulTransactionReceiptWithReason(
+            ethSendTransaction.getTransactionHash(),
+            minerNode.jsonRpcListenHost(),
+            minerNode.getJsonRpcHttpPort()));
+  }
+
+  @Test
+  public void mustRevertWithoutRevertReason() throws Exception {
+
+    final RevertReason revertReasonContract =
+        minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
+
+    final EthSendTransaction ethSendTransaction =
+        sendWithRevert(
+            RevertReason.FUNC_REVERTWITHOUTREVERTREASON,
+            revertReasonContract.getContractAddress(),
+            minerNode.web3jService());
+
+    minerNode.verify(
+        eth.expectSuccessfulTransactionReceiptWithoutReason(
+            ethSendTransaction.getTransactionHash(),
+            minerNode.jsonRpcListenHost(),
+            minerNode.getJsonRpcHttpPort()));
+  }
 }

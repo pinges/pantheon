@@ -75,6 +75,7 @@ public abstract class PantheonControllerBuilder<C> {
   protected Integer maxPendingTransactions;
   protected Integer pendingTransactionRetentionPeriod;
   protected KeyPair nodeKeys;
+  protected boolean isRevertReasonEnabled;
   private StorageProvider storageProvider;
   private final List<Runnable> shutdownActions = new ArrayList<>();
   private RocksDbConfiguration rocksDbConfiguration;
@@ -156,6 +157,11 @@ public abstract class PantheonControllerBuilder<C> {
   public PantheonControllerBuilder<C> pendingTransactionRetentionPeriod(
       final int pendingTransactionRetentionPeriod) {
     this.pendingTransactionRetentionPeriod = pendingTransactionRetentionPeriod;
+    return this;
+  }
+
+  public PantheonControllerBuilder<C> isRevertReasonEnabled(final boolean isRevertReasonEnabled) {
+    this.isRevertReasonEnabled = isRevertReasonEnabled;
     return this;
   }
 

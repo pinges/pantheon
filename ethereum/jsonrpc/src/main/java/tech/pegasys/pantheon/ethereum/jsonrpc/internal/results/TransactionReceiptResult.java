@@ -81,7 +81,7 @@ public abstract class TransactionReceiptResult {
     this.to = receiptWithMetadata.getTransaction().getTo().map(BytesValue::toString).orElse(null);
     this.transactionHash = receiptWithMetadata.getTransaction().hash().toString();
     this.transactionIndex = Quantity.create(receiptWithMetadata.getTransactionIndex());
-    this.revertReason = receipt.getRevertReason();
+    this.revertReason = receipt.getRevertReason().orElse(null);
   }
 
   @JsonGetter(value = "blockHash")
