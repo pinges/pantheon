@@ -12,7 +12,7 @@
  */
 package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.Request;
@@ -44,10 +44,10 @@ public class EthRawRequestFactory {
   }
 
   public Request<?, EthGetTransactionReceiptRawResponse> ethGetTransactionReceiptRaw(
-      String transactionHash) {
+      final String transactionHash) {
     return new Request<>(
         "eth_getTransactionReceipt",
-        Arrays.asList(transactionHash),
+        Collections.singletonList(transactionHash),
         web3jService,
         EthGetTransactionReceiptRawResponse.class);
   }
