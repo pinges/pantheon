@@ -15,8 +15,6 @@ package tech.pegasys.pantheon.tests.acceptance.dsl.condition.eth;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthTransactions;
 
-import java.util.Optional;
-
 public class EthConditions {
 
   private final EthTransactions transactions;
@@ -54,20 +52,13 @@ public class EthConditions {
   }
 
   public Condition expectSuccessfulTransactionReceiptWithReason(
-      final String transactionHash,
-      final Optional<String> hostName,
-      final Optional<Integer> jsonRpcHttpSocketPort) {
+      final String transactionHash, final String revertReason) {
     return new ExpectSuccessfulEthGetTransactionReceiptWithReason(
-        transactions.getTransactionReceiptRawResponseTransaction(
-            transactionHash, hostName, jsonRpcHttpSocketPort));
+        transactions.getTransactionReceiptRawResponseTransaction(transactionHash), revertReason);
   }
 
-  public Condition expectSuccessfulTransactionReceiptWithoutReason(
-      final String transactionHash,
-      final Optional<String> hostName,
-      final Optional<Integer> jsonRpcHttpSocketPort) {
+  public Condition expectSuccessfulTransactionReceiptWithoutReason(final String transactionHash) {
     return new ExpectSuccessfulEthGetTransactionReceiptWithoutReason(
-        transactions.getTransactionReceiptRawResponseTransaction(
-            transactionHash, hostName, jsonRpcHttpSocketPort));
+        transactions.getTransactionReceiptRawResponseTransaction(transactionHash));
   }
 }

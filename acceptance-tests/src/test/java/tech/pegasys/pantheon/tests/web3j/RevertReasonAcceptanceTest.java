@@ -46,9 +46,7 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
 
     minerNode.verify(
         eth.expectSuccessfulTransactionReceiptWithReason(
-            ethSendTransaction.getTransactionHash(),
-            minerNode.jsonRpcListenHost(),
-            minerNode.getJsonRpcHttpPort()));
+            ethSendTransaction.getTransactionHash(), "RevertReason"));
   }
 
   @Test
@@ -65,8 +63,6 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
 
     minerNode.verify(
         eth.expectSuccessfulTransactionReceiptWithoutReason(
-            ethSendTransaction.getTransactionHash(),
-            minerNode.jsonRpcListenHost(),
-            minerNode.getJsonRpcHttpPort()));
+            ethSendTransaction.getTransactionHash()));
   }
 }

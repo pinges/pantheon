@@ -18,6 +18,9 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.WaitUtils;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRawResponseTransaction;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
+
+import java.util.Optional;
 
 public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Condition {
 
@@ -30,6 +33,12 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Co
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(() -> assertThat(node.execute(transaction)).doesNotContain("RevertReason"));
+    WaitUtils.waitFor(() -> assertThat(revertReasonIsEmpty(node)).isPresent());
+  }
+
+  private Optional<String> revertReasonIsEmpty(final Node node) {
+    return node.execute(transaction)
+        .map(TransactionReceiptRaw::getRevertReason)
+        .filter(String::isEmpty);
   }
 }

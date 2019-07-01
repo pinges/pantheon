@@ -34,6 +34,7 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.Transaction;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.admin.AdminRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.clique.CliqueRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eea.EeaRequestFactory;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.ibft2.Ibft2RequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.login.LoginRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomNetJsonRpcRequestFactory;
@@ -99,7 +100,6 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
   private String token = null;
   private final List<String> plugins = new ArrayList<>();
   private final List<String> extraCLIOptions;
-  private Web3jService web3jService;
 
   public PantheonNode(
       final String name,
@@ -241,15 +241,6 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
   }
 
   @Override
-  public Optional<Integer> getJsonRpcHttpPort() {
-    if (isWebSocketsRpcEnabled()) {
-      return Optional.of(Integer.valueOf(portsProperties.getProperty("json-rpc")));
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  @Override
   public String getHostName() {
     return LOCALHOST;
   }
@@ -257,6 +248,7 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
   private NodeRequests nodeRequests() {
     Optional<WebSocketService> websocketService = Optional.empty();
     if (nodeRequests == null) {
+      final Web3jService web3jService;
 
       if (useWsForJsonRpc) {
         final String url = wsRpcBaseUrl().orElse("ws://" + LOCALHOST + ":" + 8546);
@@ -287,6 +279,7 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
       nodeRequests =
           new NodeRequests(
               new JsonRpc2_0Web3j(web3jService, 2000, Async.defaultExecutorService()),
+              new EthRawRequestFactory(web3jService),
               new CliqueRequestFactory(web3jService),
               new Ibft2RequestFactory(web3jService),
               new PermissioningJsonRpcRequestFactory(web3jService),
@@ -298,10 +291,6 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
     }
 
     return nodeRequests;
-  }
-
-  public Web3jService web3jService() {
-    return web3jService;
   }
 
   private LoginRequestFactory loginRequestFactory() {
@@ -435,7 +424,7 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
     return jsonRpcConfiguration;
   }
 
-  public Optional<String> jsonRpcListenHost() {
+  Optional<String> jsonRpcListenHost() {
     if (isJsonRpcEnabled()) {
       return Optional.of(jsonRpcConfiguration().getHost());
     } else {

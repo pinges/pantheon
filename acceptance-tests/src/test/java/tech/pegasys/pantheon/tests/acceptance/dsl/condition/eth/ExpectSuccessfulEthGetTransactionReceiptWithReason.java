@@ -18,18 +18,33 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.WaitUtils;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRawResponseTransaction;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
+
+import java.util.Optional;
 
 public class ExpectSuccessfulEthGetTransactionReceiptWithReason implements Condition {
 
   private final EthGetTransactionReceiptRawResponseTransaction transaction;
+  private final String expectedRevertReason;
 
   public ExpectSuccessfulEthGetTransactionReceiptWithReason(
-      final EthGetTransactionReceiptRawResponseTransaction transaction) {
+      final EthGetTransactionReceiptRawResponseTransaction transaction,
+      final String expectedRevertReason) {
     this.transaction = transaction;
+    this.expectedRevertReason = expectedRevertReason;
   }
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(() -> assertThat(node.execute(transaction)).contains("RevertReason"));
+    WaitUtils.waitFor(
+        () -> assertThat(revertReasonMatches(node, expectedRevertReason)).isPresent());
+  }
+
+  private Optional<TransactionReceiptRaw> revertReasonMatches(
+      final Node node, final String expectedRevertReason) {
+    return node.execute(transaction)
+        .filter(
+            transactionReceipt ->
+                transactionReceipt.getRevertReason().contains(expectedRevertReason));
   }
 }

@@ -14,8 +14,6 @@ package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth;
 
 import tech.pegasys.pantheon.tests.acceptance.dsl.account.Account;
 
-import java.util.Optional;
-
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 
@@ -59,10 +57,7 @@ public class EthTransactions {
   }
 
   public EthGetTransactionReceiptRawResponseTransaction getTransactionReceiptRawResponseTransaction(
-      final String transactionHash,
-      final Optional<String> hostName,
-      final Optional<Integer> jsonRpcHttpSocketPort) {
-    return new EthGetTransactionReceiptRawResponseTransaction(
-        transactionHash, hostName, jsonRpcHttpSocketPort);
+      final String transactionHash) {
+    return new EthGetTransactionReceiptRawResponseTransaction(transactionHash);
   }
 }

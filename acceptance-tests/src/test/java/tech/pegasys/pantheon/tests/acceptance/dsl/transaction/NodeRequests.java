@@ -15,6 +15,7 @@ package tech.pegasys.pantheon.tests.acceptance.dsl.transaction;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.admin.AdminRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.clique.CliqueRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eea.EeaRequestFactory;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.ibft2.Ibft2RequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.login.LoginRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomNetJsonRpcRequestFactory;
@@ -28,6 +29,7 @@ import org.web3j.protocol.websocket.WebSocketService;
 public class NodeRequests {
 
   private final JsonRpc2_0Web3j netEth;
+  private final EthRawRequestFactory ethRaw;
   private final CliqueRequestFactory clique;
   private final Ibft2RequestFactory ibft;
   private final PermissioningJsonRpcRequestFactory perm;
@@ -39,6 +41,7 @@ public class NodeRequests {
 
   public NodeRequests(
       final JsonRpc2_0Web3j netEth,
+      final EthRawRequestFactory ethRaw,
       final CliqueRequestFactory clique,
       final Ibft2RequestFactory ibft,
       final PermissioningJsonRpcRequestFactory perm,
@@ -48,6 +51,7 @@ public class NodeRequests {
       final Optional<WebSocketService> websocketService,
       final LoginRequestFactory login) {
     this.netEth = netEth;
+    this.ethRaw = ethRaw;
     this.clique = clique;
     this.ibft = ibft;
     this.perm = perm;
@@ -60,6 +64,10 @@ public class NodeRequests {
 
   public JsonRpc2_0Web3j eth() {
     return netEth;
+  }
+
+  public EthRawRequestFactory ethRaw() {
+    return ethRaw;
   }
 
   public JsonRpc2_0Web3j net() {
