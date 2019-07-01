@@ -169,7 +169,7 @@ public class MainnetTransactionProcessor implements TransactionProcessor {
       final OperationTracer operationTracer,
       final BlockHashLookup blockHashLookup,
       final Boolean isPersistingState,
-      final Boolean checkOnchainPermissions) {
+      final TransactionValidationParams transactionValidationParams) {
     LOG.trace("Starting execution of {}", transaction);
 
     ValidationResult<TransactionInvalidReason> validationResult =
@@ -182,16 +182,10 @@ public class MainnetTransactionProcessor implements TransactionProcessor {
       return Result.invalid(validationResult);
     }
 
-    final TransactionValidationParams validationParams =
-        new TransactionValidationParams.Builder()
-            .allowFutureNonce(false)
-            .checkOnchainPermissions(checkOnchainPermissions)
-            .build();
-
     final Address senderAddress = transaction.getSender();
     final MutableAccount sender = worldState.getOrCreate(senderAddress);
     validationResult =
-        transactionValidator.validateForSender(transaction, sender, validationParams);
+        transactionValidator.validateForSender(transaction, sender, transactionValidationParams);
     if (!validationResult.isValid()) {
       LOG.warn("Invalid transaction: {}", validationResult.getErrorMessage());
       return Result.invalid(validationResult);
