@@ -79,6 +79,7 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
   private final KeyPair keyPair;
   private final Properties portsProperties = new Properties();
   private final Boolean p2pEnabled;
+  private final boolean revertReasonEnabled;
 
   private final String name;
   private final MiningParameters miningParameters;
@@ -115,10 +116,12 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
       final boolean p2pEnabled,
       final boolean discoveryEnabled,
       final boolean bootnodeEligible,
+      final boolean revertReasonEnabled,
       final List<String> plugins,
       final List<String> extraCLIOptions)
       throws IOException {
     this.bootnodeEligible = bootnodeEligible;
+    this.revertReasonEnabled = revertReasonEnabled;
     this.homeDirectory = Files.createTempDirectory("acctest");
     keyfilePath.ifPresent(
         path -> {
@@ -513,6 +516,11 @@ public class PantheonNode implements NodeConfiguration, RunnableNode, AutoClosea
   @Override
   public List<String> getExtraCLIOptions() {
     return extraCLIOptions;
+  }
+
+  @Override
+  public boolean isRevertReasonEnabled() {
+    return revertReasonEnabled;
   }
 
   @Override

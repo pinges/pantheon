@@ -102,10 +102,6 @@ public class ThreadPantheonNodeRunner implements PantheonNodeRunner {
     final EthNetworkConfig ethNetworkConfig = networkConfigBuilder.build();
     final PantheonControllerBuilder<?> builder =
         new PantheonController.Builder().fromEthNetworkConfig(ethNetworkConfig);
-    if (node.getName()
-        .contains("withRevertReason")) { // TODO: find better way to enable the revert reason
-      builder.isRevertReasonEnabled(true);
-    }
     final Path tempDir = Files.createTempDir().toPath();
 
     final PantheonController<?> pantheonController;
@@ -122,6 +118,7 @@ public class ThreadPantheonNodeRunner implements PantheonNodeRunner {
               .rocksDbConfiguration(new RocksDbConfiguration.Builder().databaseDir(tempDir).build())
               .ethereumWireProtocolConfiguration(EthereumWireProtocolConfiguration.defaultConfig())
               .clock(Clock.systemUTC())
+              .isRevertReasonEnabled(node.isRevertReasonEnabled())
               .build();
     } catch (final IOException e) {
       throw new RuntimeException("Error building PantheonController", e);

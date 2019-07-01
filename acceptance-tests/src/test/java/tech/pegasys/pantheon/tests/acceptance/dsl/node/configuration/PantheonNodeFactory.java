@@ -46,6 +46,7 @@ public class PantheonNodeFactory {
         config.isP2pEnabled(),
         config.isDiscoveryEnabled(),
         config.isBootnodeEligible(),
+        config.isRevertReasonEnabled(),
         config.getPlugins(),
         config.getExtraCLIOptions());
   }
@@ -57,6 +58,17 @@ public class PantheonNodeFactory {
             .miningEnabled()
             .jsonRpcEnabled()
             .webSocketEnabled()
+            .build());
+  }
+
+  public PantheonNode createMinerNodeWithRevertReasonEnabled(final String name) throws IOException {
+    return create(
+        new PantheonFactoryConfigurationBuilder()
+            .name(name)
+            .miningEnabled()
+            .jsonRpcEnabled()
+            .webSocketEnabled()
+            .revertReasonEnabled()
             .build());
   }
 

@@ -46,6 +46,7 @@ public class PrivacyPantheonFactoryConfigurationBuilder {
         config.isP2pEnabled(),
         config.isDiscoveryEnabled(),
         config.isBootnodeEligible(),
+        config.isRevertReasonEnabled(),
         config.getPlugins(),
         config.getExtraCLIOptions(),
         orion);

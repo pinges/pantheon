@@ -38,6 +38,7 @@ public class PantheonFactoryConfiguration {
   private final boolean p2pEnabled;
   private final boolean discoveryEnabled;
   private final boolean bootnodeEligible;
+  private final boolean revertReasonEnabled;
   private final List<String> plugins;
   private final List<String> extraCLIOptions;
 
@@ -55,6 +56,7 @@ public class PantheonFactoryConfiguration {
       final boolean p2pEnabled,
       final boolean discoveryEnabled,
       final boolean bootnodeEligible,
+      final boolean revertReasonEnabled,
       final List<String> plugins,
       final List<String> extraCLIOptions) {
     this.name = name;
@@ -70,6 +72,7 @@ public class PantheonFactoryConfiguration {
     this.p2pEnabled = p2pEnabled;
     this.discoveryEnabled = discoveryEnabled;
     this.bootnodeEligible = bootnodeEligible;
+    this.revertReasonEnabled = revertReasonEnabled;
     this.plugins = plugins;
     this.extraCLIOptions = extraCLIOptions;
   }
@@ -132,5 +135,9 @@ public class PantheonFactoryConfiguration {
 
   public List<String> getExtraCLIOptions() {
     return extraCLIOptions;
+  }
+
+  public boolean isRevertReasonEnabled() {
+    return revertReasonEnabled;
   }
 }

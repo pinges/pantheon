@@ -26,7 +26,7 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
 
   @Before
   public void setUp() throws Exception {
-    minerNode = pantheon.createMinerNode("miner-node-withRevertReason");
+    minerNode = pantheon.createMinerNodeWithRevertReasonEnabled("miner-node-withRevertReason");
     cluster.start(minerNode);
   }
 

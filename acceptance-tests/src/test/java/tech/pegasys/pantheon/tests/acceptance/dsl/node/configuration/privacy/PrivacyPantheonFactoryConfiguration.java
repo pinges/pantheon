@@ -43,6 +43,7 @@ public class PrivacyPantheonFactoryConfiguration extends PantheonFactoryConfigur
       final boolean p2pEnabled,
       final boolean discoveryEnabled,
       final boolean bootnodeEligible,
+      final boolean revertReasonEnabled,
       final List<String> plugins,
       final List<String> extraCLIOptions,
       final OrionTestHarness orion) {
@@ -60,6 +61,7 @@ public class PrivacyPantheonFactoryConfiguration extends PantheonFactoryConfigur
         p2pEnabled,
         discoveryEnabled,
         bootnodeEligible,
+        revertReasonEnabled,
         plugins,
         extraCLIOptions);
     this.orion = orion;
