@@ -12,8 +12,6 @@
  */
 package tech.pegasys.pantheon.tests.web3j;
 
-import static tech.pegasys.pantheon.tests.acceptance.dsl.ContractUtils.sendWithRevert;
-
 import tech.pegasys.pantheon.tests.acceptance.dsl.AcceptanceTestBase;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.PantheonNode;
 import tech.pegasys.pantheon.tests.web3j.generated.RevertReason;
@@ -33,36 +31,30 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
   }
 
   @Test
-  public void mustRevertWithRevertReason() throws Exception {
+  public void mustRevertWithRevertReason() {
 
     final RevertReason revertReasonContract =
         minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
-
-    final EthSendTransaction ethSendTransaction =
-        sendWithRevert(
-            RevertReason.FUNC_REVERTWITHREVERTREASON,
-            revertReasonContract.getContractAddress(),
-            minerNode.web3jService());
-
+    final EthSendTransaction transaction =
+        minerNode.execute(
+            contractTransactions.callSmartContractWithRevert(
+                RevertReason.FUNC_REVERTWITHREVERTREASON,
+                revertReasonContract.getContractAddress()));
     minerNode.verify(
         eth.expectSuccessfulTransactionReceiptWithReason(
-            ethSendTransaction.getTransactionHash(), "RevertReason"));
+            transaction.getTransactionHash(), "RevertReason"));
   }
 
   @Test
-  public void mustRevertWithoutRevertReason() throws Exception {
-
+  public void mustRevertWithoutRevertReason() {
     final RevertReason revertReasonContract =
         minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
-
-    final EthSendTransaction ethSendTransaction =
-        sendWithRevert(
-            RevertReason.FUNC_REVERTWITHOUTREVERTREASON,
-            revertReasonContract.getContractAddress(),
-            minerNode.web3jService());
-
+    final EthSendTransaction transaction =
+        minerNode.execute(
+            contractTransactions.callSmartContractWithRevert(
+                RevertReason.FUNC_REVERTWITHOUTREVERTREASON,
+                revertReasonContract.getContractAddress()));
     minerNode.verify(
-        eth.expectSuccessfulTransactionReceiptWithoutReason(
-            ethSendTransaction.getTransactionHash()));
+        eth.expectSuccessfulTransactionReceiptWithoutReason(transaction.getTransactionHash()));
   }
 }
