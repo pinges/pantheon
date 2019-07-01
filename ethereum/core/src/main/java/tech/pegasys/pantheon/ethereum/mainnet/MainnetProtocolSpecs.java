@@ -266,8 +266,10 @@ public abstract class MainnetProtocolSpecs {
   public static ProtocolSpecBuilder<Void> istanbulDefinition(
       final Optional<BigInteger> chainId,
       final OptionalInt contractSizeLimit,
-      final OptionalInt configStackSizeLimit) {
-    return constantinopleFixDefinition(chainId, contractSizeLimit, configStackSizeLimit)
+      final OptionalInt configStackSizeLimit,
+      final boolean enableRevertReason) {
+    return constantinopleFixDefinition(
+            chainId, contractSizeLimit, configStackSizeLimit, enableRevertReason)
         .name("Istanbul");
   }
 

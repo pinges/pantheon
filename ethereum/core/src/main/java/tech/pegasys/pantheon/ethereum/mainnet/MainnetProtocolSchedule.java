@@ -37,6 +37,7 @@ public class MainnetProtocolSchedule {
    * @param config {@link GenesisConfigOptions} containing the config options for the milestone
    *     starting points
    * @param privacyParameters the parameters set for private transactions
+   * @param isRevertReasonEnabled whether storing the revert reason is for failed transactions
    * @return A configured mainnet protocol schedule
    */
   public static ProtocolSchedule<Void> fromConfig(
@@ -57,12 +58,12 @@ public class MainnetProtocolSchedule {
    *
    * @param config {@link GenesisConfigOptions} containing the config options for the milestone
    *     starting points
-   * @param isReverReasonEnabled
+   * @param isRevertReasonEnabled whether storing the revert reason is for failed transactions
    * @return A configured mainnet protocol schedule
    */
   public static ProtocolSchedule<Void> fromConfig(
-      final GenesisConfigOptions config, final boolean isReverReasonEnabled) {
-    return fromConfig(config, PrivacyParameters.DEFAULT, isReverReasonEnabled);
+      final GenesisConfigOptions config, final boolean isRevertReasonEnabled) {
+    return fromConfig(config, PrivacyParameters.DEFAULT, isRevertReasonEnabled);
   }
 
   /**

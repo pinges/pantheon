@@ -125,7 +125,9 @@ public class BlockTransactionSelectorTest {
 
     when(transactionProcessor.processTransaction(
             any(), any(), any(), eq(transaction), any(), any(), anyBoolean(), any()))
-        .thenReturn(MainnetTransactionProcessor.Result.failed(5, ValidationResult.valid(), Optional.empty()));
+        .thenReturn(
+            MainnetTransactionProcessor.Result.failed(
+                5, ValidationResult.valid(), Optional.empty()));
 
     // The block should fit 3 transactions only
     final ProcessableBlockHeader blockHeader = createBlockWithGasLimit(5000);

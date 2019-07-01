@@ -54,6 +54,7 @@ public class TransactionReceipt {
    * @param stateRoot the state root for the world state after the transaction has been processed
    * @param cumulativeGasUsed the total amount of gas consumed in the block after this transaction
    * @param logs the logs generated within the transaction
+   * @param revertReason whether storing the revert reason is for failed transactions
    */
   public TransactionReceipt(
       final Hash stateRoot,
@@ -84,6 +85,7 @@ public class TransactionReceipt {
    * @param status the status code for the transaction (1 for success and 0 for failure)
    * @param cumulativeGasUsed the total amount of gas consumed in the block after this transaction
    * @param logs the logs generated within the transaction
+   * @param revertReason the revert reason
    */
   public TransactionReceipt(
       final int status,
@@ -155,7 +157,6 @@ public class TransactionReceipt {
    * Creates a transaction receipt for the given RLP
    *
    * @param input the RLP-encoded transaction receipt
-   * @param b
    * @return the transaction receipt
    */
   public static TransactionReceipt readFrom(final RLPInput input) {
