@@ -32,7 +32,6 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
 
   @Test
   public void mustRevertWithRevertReason() {
-
     final RevertReason revertReasonContract =
         minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
     final EthSendTransaction transaction =
