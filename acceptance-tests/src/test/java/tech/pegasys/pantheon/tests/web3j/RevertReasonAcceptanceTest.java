@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 ConsenSys AG.
+ * Copyright 2019 ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,6 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 package tech.pegasys.pantheon.tests.web3j;
+
+import static tech.pegasys.pantheon.tests.web3j.generated.RevertReason.FUNC_REVERTWITHOUTREVERTREASON;
+import static tech.pegasys.pantheon.tests.web3j.generated.RevertReason.FUNC_REVERTWITHREVERTREASON;
 
 import tech.pegasys.pantheon.tests.acceptance.dsl.AcceptanceTestBase;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.PantheonNode;
@@ -36,9 +39,8 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
         minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
     final EthSendTransaction transaction =
         minerNode.execute(
-            contractTransactions.callSmartContractWithRevert(
-                RevertReason.FUNC_REVERTWITHREVERTREASON,
-                revertReasonContract.getContractAddress()));
+            contractTransactions.callSmartContract(
+                FUNC_REVERTWITHREVERTREASON, revertReasonContract.getContractAddress()));
     minerNode.verify(
         eth.expectSuccessfulTransactionReceiptWithReason(
             transaction.getTransactionHash(), "RevertReason"));
@@ -50,9 +52,8 @@ public class RevertReasonAcceptanceTest extends AcceptanceTestBase {
         minerNode.execute(contractTransactions.createSmartContract(RevertReason.class));
     final EthSendTransaction transaction =
         minerNode.execute(
-            contractTransactions.callSmartContractWithRevert(
-                RevertReason.FUNC_REVERTWITHOUTREVERTREASON,
-                revertReasonContract.getContractAddress()));
+            contractTransactions.callSmartContract(
+                FUNC_REVERTWITHOUTREVERTREASON, revertReasonContract.getContractAddress()));
     minerNode.verify(
         eth.expectSuccessfulTransactionReceiptWithoutReason(transaction.getTransactionHash()));
   }

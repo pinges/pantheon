@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 ConsenSys AG.
+ * Copyright 2019 ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,9 +18,6 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.WaitUtils;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRaw;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
-
-import java.util.Optional;
 
 public class ExpectSuccessfulEthGetTransactionReceiptWithReason implements Condition {
 
@@ -35,15 +32,14 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithReason implements Condi
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(
-        () -> assertThat(revertReasonMatches(node, expectedRevertReason)).isPresent());
+    WaitUtils.waitFor(() -> assertThat(revertReasonMatches(node, expectedRevertReason)));
   }
 
-  private Optional<TransactionReceiptRaw> revertReasonMatches(
-      final Node node, final String expectedRevertReason) {
+  private boolean revertReasonMatches(final Node node, final String expectedRevertReason) {
     return node.execute(transaction)
         .filter(
             transactionReceipt ->
-                transactionReceipt.getRevertReason().contains(expectedRevertReason));
+                transactionReceipt.getRevertReason().contains(expectedRevertReason))
+        .isPresent();
   }
 }

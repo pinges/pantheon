@@ -12,7 +12,7 @@
  */
 package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.contract;
 
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.CallSmartContractFunctionWithRevert;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.CallSmartContractFunction;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.DeploySmartContractTransaction;
 
 import org.web3j.tx.Contract;
@@ -24,8 +24,8 @@ public class ContractTransactions {
     return new DeploySmartContractTransaction<>(clazz);
   }
 
-  public CallSmartContractFunctionWithRevert callSmartContractWithRevert(
+  public CallSmartContractFunction callSmartContract(
       final String functionName, final String contractAddress) {
-    return new CallSmartContractFunctionWithRevert(functionName, contractAddress);
+    return new CallSmartContractFunction(functionName, contractAddress);
   }
 }

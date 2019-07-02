@@ -24,7 +24,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.tx.RawTransactionManager;
 
-public class CallSmartContractFunctionWithRevert implements Transaction<EthSendTransaction> {
+public class CallSmartContractFunction implements Transaction<EthSendTransaction> {
 
   private static final BigInteger GAS_PRICE = BigInteger.valueOf(1000);
   private static final BigInteger GAS_LIMIT = BigInteger.valueOf(3000000);
@@ -34,8 +34,7 @@ public class CallSmartContractFunctionWithRevert implements Transaction<EthSendT
   private final String functionName;
   private final String contractAddress;
 
-  public CallSmartContractFunctionWithRevert(
-      final String functionName, final String contractAddress) {
+  public CallSmartContractFunction(final String functionName, final String contractAddress) {
     this.functionName = functionName;
     this.contractAddress = contractAddress;
   }

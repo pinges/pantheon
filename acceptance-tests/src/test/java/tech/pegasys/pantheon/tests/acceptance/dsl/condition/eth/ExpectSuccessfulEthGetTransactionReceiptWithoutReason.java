@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 ConsenSys AG.
+ * Copyright 2019 ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,8 +20,6 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRaw;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
 
-import java.util.Optional;
-
 public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Condition {
 
   private final EthGetTransactionReceiptRaw transaction;
@@ -33,12 +31,13 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Co
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(() -> assertThat(revertReasonIsEmpty(node)).isPresent());
+    WaitUtils.waitFor(() -> assertThat(revertReasonIsEmpty(node)));
   }
 
-  private Optional<String> revertReasonIsEmpty(final Node node) {
+  private boolean revertReasonIsEmpty(final Node node) {
     return node.execute(transaction)
         .map(TransactionReceiptRaw::getRevertReason)
-        .filter(String::isEmpty);
+        .filter(String::isEmpty)
+        .isPresent();
   }
 }
