@@ -14,16 +14,14 @@ package tech.pegasys.pantheon.tests.web3j.generated;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteCall;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -39,14 +37,11 @@ import org.web3j.tx.gas.ContractGasProvider;
  *
  * <p>Generated with web3j version 4.3.0.
  */
-@SuppressWarnings("rawtypes")
 public class RevertReason extends Contract {
   private static final String BINARY =
-      "60806040526000805534801561001457600080fd5b5060de806100236000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c806311f95f6f1460415780633fa4f245146049578063ff489d31146061575b600080fd5b60476067565b005b604f60a3565b60408051918252519081900360200190f35b6047603c565b6040805162461bcd60e51b815260206004820152600c60248201526b2932bb32b93a2932b0b9b7b760a11b604482015290519081900360640190fd5b6000548156fea265627a7a72305820344bbe39744359c54d48fe55c3f74fd985bb207dd59e3b0e041c55ce0ec876cb64736f6c63430005090032";
+      "608060405234801561001057600080fd5b5060d18061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806311f95f6f146037578063ff489d31146051575b600080fd5b603d6057565b604080519115158252519081900360200190f35b603d6095565b6040805162461bcd60e51b815260206004820152600c60248201526b2932bb32b93a2932b0b9b7b760a11b6044820152905160009181900360640190fd5b6000806000fdfea265627a7a723058202dd24b599e57aa54899e1beceec3fb4a5001fccb4be994e8d18aa03cc123708764736f6c634300050a0032";
 
   public static final String FUNC_REVERTWITHREVERTREASON = "revertWithRevertReason";
-
-  public static final String FUNC_VALUE = "value";
 
   public static final String FUNC_REVERTWITHOUTREVERTREASON = "revertWithoutRevertReason";
 
@@ -86,31 +81,22 @@ public class RevertReason extends Contract {
     super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
   }
 
-  public RemoteCall<TransactionReceipt> revertWithRevertReason() {
+  public RemoteCall<Boolean> revertWithRevertReason() {
     final Function function =
         new Function(
             FUNC_REVERTWITHREVERTREASON,
             Arrays.<Type>asList(),
-            Collections.<TypeReference<?>>emptyList());
-    return executeRemoteCallTransaction(function);
+            Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+    return executeRemoteCallSingleValueReturn(function, Boolean.class);
   }
 
-  public RemoteCall<BigInteger> value() {
-    final Function function =
-        new Function(
-            FUNC_VALUE,
-            Arrays.<Type>asList(),
-            Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
-    return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-  }
-
-  public RemoteCall<TransactionReceipt> revertWithoutRevertReason() {
+  public RemoteCall<Boolean> revertWithoutRevertReason() {
     final Function function =
         new Function(
             FUNC_REVERTWITHOUTREVERTREASON,
             Arrays.<Type>asList(),
-            Collections.<TypeReference<?>>emptyList());
-    return executeRemoteCallTransaction(function);
+            Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+    return executeRemoteCallSingleValueReturn(function, Boolean.class);
   }
 
   @Deprecated

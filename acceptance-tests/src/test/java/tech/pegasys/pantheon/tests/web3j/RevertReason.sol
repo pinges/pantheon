@@ -18,22 +18,11 @@ pragma solidity >=0.4.0 <0.6.0;
 // web3j solidity generate -b ./generated/RevertReason.bin -a ./generated/RevertReason.abi -o ../../../../../ -p tech.pegasys.pantheon.tests.web3j.generated
 contract RevertReason {
 
-    uint public value = 0;
-
-    function revertWithRevertReason() public {
-        if (true) {
-            revert("RevertReason");
-        } else {
-            value = value + 1;
-        }
+    function revertWithRevertReason() public pure returns (bool) {
+        revert("RevertReason");
     }
 
-    function revertWithoutRevertReason() public {
-        if (true) {
-            revert();
-        } else {
-            value = value + 1;
-        }
+    function revertWithoutRevertReason() public pure returns (bool) {
         revert();
     }
 }
