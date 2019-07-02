@@ -17,19 +17,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import tech.pegasys.pantheon.tests.acceptance.dsl.WaitUtils;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRawResponseTransaction;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRaw;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
 
 import java.util.Optional;
 
 public class ExpectSuccessfulEthGetTransactionReceiptWithReason implements Condition {
 
-  private final EthGetTransactionReceiptRawResponseTransaction transaction;
+  private final EthGetTransactionReceiptRaw transaction;
   private final String expectedRevertReason;
 
   public ExpectSuccessfulEthGetTransactionReceiptWithReason(
-      final EthGetTransactionReceiptRawResponseTransaction transaction,
-      final String expectedRevertReason) {
+      final EthGetTransactionReceiptRaw transaction, final String expectedRevertReason) {
     this.transaction = transaction;
     this.expectedRevertReason = expectedRevertReason;
   }

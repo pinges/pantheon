@@ -22,11 +22,10 @@ import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestF
 import java.io.IOException;
 import java.util.Optional;
 
-public class EthGetTransactionReceiptRawResponseTransaction
-    implements Transaction<Optional<TransactionReceiptRaw>> {
+public class EthGetTransactionReceiptRaw implements Transaction<Optional<TransactionReceiptRaw>> {
   private final String transactionHash;
 
-  public EthGetTransactionReceiptRawResponseTransaction(final String transactionHash) {
+  public EthGetTransactionReceiptRaw(final String transactionHash) {
     this.transactionHash = transactionHash;
   }
 
