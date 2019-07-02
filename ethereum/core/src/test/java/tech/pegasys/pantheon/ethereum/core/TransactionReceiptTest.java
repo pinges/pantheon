@@ -31,8 +31,8 @@ public class TransactionReceiptTest {
 
   @Test
   public void toFromRlpWithReason() {
-    final BlockDataGenerator gen = new BlockDataGeneratorWithReason();
-    final TransactionReceipt receipt = gen.receipt();
+    final BlockDataGenerator gen = new BlockDataGenerator();
+    final TransactionReceipt receipt = gen.receipt("RevertReason");
     final TransactionReceipt copy =
         TransactionReceipt.readFrom(RLP.input(RLP.encode(receipt::writeToWithRevertReason)));
     assertEquals(receipt, copy);
