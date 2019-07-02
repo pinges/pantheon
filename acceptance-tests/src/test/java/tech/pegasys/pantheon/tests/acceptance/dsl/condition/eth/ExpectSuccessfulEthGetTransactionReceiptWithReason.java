@@ -32,7 +32,7 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithReason implements Condi
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(() -> assertThat(revertReasonMatches(node, expectedRevertReason)));
+    WaitUtils.waitFor(() -> assertThat(revertReasonMatches(node, expectedRevertReason)).isTrue());
   }
 
   private boolean revertReasonMatches(final Node node, final String expectedRevertReason) {

@@ -31,7 +31,7 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Co
 
   @Override
   public void verify(final Node node) {
-    WaitUtils.waitFor(() -> assertThat(revertReasonIsEmpty(node)));
+    WaitUtils.waitFor(() -> assertThat(revertReasonIsEmpty(node)).isTrue());
   }
 
   private boolean revertReasonIsEmpty(final Node node) {
