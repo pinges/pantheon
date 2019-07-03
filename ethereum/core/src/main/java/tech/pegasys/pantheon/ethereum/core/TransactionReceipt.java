@@ -85,7 +85,7 @@ public class TransactionReceipt {
    * @param status the status code for the transaction (1 for success and 0 for failure)
    * @param cumulativeGasUsed the total amount of gas consumed in the block after this transaction
    * @param logs the logs generated within the transaction
-   * @param revertReason the revert reason for a failed transaction
+   * @param revertReason the revert reason for a failed transaction (if applicable)
    */
   public TransactionReceipt(
       final int status,
