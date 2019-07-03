@@ -99,7 +99,7 @@ public interface TransactionProcessor {
     ValidationResult<TransactionInvalidReason> getValidationResult();
 
     /**
-     * Returns the reason a transaction was reverted (if applicable).
+     * Returns the reason why a transaction was reverted (if applicable).
      *
      * @return the revert reason.
      */

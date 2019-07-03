@@ -54,7 +54,7 @@ public class TransactionReceipt {
    * @param stateRoot the state root for the world state after the transaction has been processed
    * @param cumulativeGasUsed the total amount of gas consumed in the block after this transaction
    * @param logs the logs generated within the transaction
-   * @param revertReason whether storing the revert reason is for failed transactions
+   * @param revertReason the revert reason for a failed transaction (if applicable)
    */
   public TransactionReceipt(
       final Hash stateRoot,
@@ -85,7 +85,7 @@ public class TransactionReceipt {
    * @param status the status code for the transaction (1 for success and 0 for failure)
    * @param cumulativeGasUsed the total amount of gas consumed in the block after this transaction
    * @param logs the logs generated within the transaction
-   * @param revertReason the revert reason
+   * @param revertReason the revert reason for a failed transaction
    */
   public TransactionReceipt(
       final int status,
