@@ -15,62 +15,54 @@ package tech.pegasys.pantheon.tests.acceptance.dsl.transaction;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.admin.AdminRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.clique.CliqueRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eea.EeaRequestFactory;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.ibft2.Ibft2RequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.login.LoginRequestFactory;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomNetJsonRpcRequestFactory;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomRequestFactory;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.perm.PermissioningJsonRpcRequestFactory;
 
 import java.util.Optional;
 
-import org.web3j.protocol.core.JsonRpc2_0Web3j;
+import org.web3j.protocol.Web3j;
 import org.web3j.protocol.websocket.WebSocketService;
 
 public class NodeRequests {
 
-  private final JsonRpc2_0Web3j netEth;
-  private final EthRawRequestFactory ethRaw;
+  private final Web3j netEth;
   private final CliqueRequestFactory clique;
   private final Ibft2RequestFactory ibft;
   private final PermissioningJsonRpcRequestFactory perm;
   private final AdminRequestFactory admin;
   private final EeaRequestFactory eea;
-  private final CustomNetJsonRpcRequestFactory customNet;
+  private final CustomRequestFactory custom;
   private final Optional<WebSocketService> websocketService;
   private final LoginRequestFactory login;
 
   public NodeRequests(
-      final JsonRpc2_0Web3j netEth,
-      final EthRawRequestFactory ethRaw,
+      final Web3j netEth,
       final CliqueRequestFactory clique,
       final Ibft2RequestFactory ibft,
       final PermissioningJsonRpcRequestFactory perm,
       final AdminRequestFactory admin,
       final EeaRequestFactory eea,
-      final CustomNetJsonRpcRequestFactory customNet,
+      final CustomRequestFactory custom,
       final Optional<WebSocketService> websocketService,
       final LoginRequestFactory login) {
     this.netEth = netEth;
-    this.ethRaw = ethRaw;
     this.clique = clique;
     this.ibft = ibft;
     this.perm = perm;
     this.admin = admin;
     this.eea = eea;
-    this.customNet = customNet;
+    this.custom = custom;
     this.websocketService = websocketService;
     this.login = login;
   }
 
-  public JsonRpc2_0Web3j eth() {
+  public Web3j eth() {
     return netEth;
   }
 
-  public EthRawRequestFactory ethRaw() {
-    return ethRaw;
-  }
-
-  public JsonRpc2_0Web3j net() {
+  public Web3j net() {
     return netEth;
   }
 
@@ -90,8 +82,8 @@ public class NodeRequests {
     return admin;
   }
 
-  public CustomNetJsonRpcRequestFactory customNet() {
-    return customNet;
+  public CustomRequestFactory custom() {
+    return custom;
   }
 
   public EeaRequestFactory eea() {

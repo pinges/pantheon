@@ -16,24 +16,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.NodeRequests;
 import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.Transaction;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.EthGetTransactionReceiptRawResponse;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomRequestFactory.EthGetTransactionReceiptWithRevertReasonResponse;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomRequestFactory.TransactionReceiptWithRevertReason;
 
 import java.io.IOException;
 import java.util.Optional;
 
-public class EthGetTransactionReceiptRaw implements Transaction<Optional<TransactionReceiptRaw>> {
+public class EthGetTransactionReceiptWithRevertReason
+    implements Transaction<Optional<TransactionReceiptWithRevertReason>> {
   private final String transactionHash;
 
-  public EthGetTransactionReceiptRaw(final String transactionHash) {
+  public EthGetTransactionReceiptWithRevertReason(final String transactionHash) {
     this.transactionHash = transactionHash;
   }
 
   @Override
-  public Optional<TransactionReceiptRaw> execute(final NodeRequests node) {
+  public Optional<TransactionReceiptWithRevertReason> execute(final NodeRequests node) {
     try {
-      final EthGetTransactionReceiptRawResponse response =
-          node.ethRaw().ethGetTransactionReceiptRaw(transactionHash).send();
+      final EthGetTransactionReceiptWithRevertReasonResponse response =
+          node.custom().ethGetTransactionReceiptWithRevertReason(transactionHash).send();
       assertThat(response.hasError()).isFalse();
       return Optional.ofNullable(response.getResult());
     } catch (final IOException e) {

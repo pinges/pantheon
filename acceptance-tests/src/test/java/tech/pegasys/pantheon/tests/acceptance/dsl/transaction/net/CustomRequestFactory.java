@@ -10,21 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth;
+package tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.web3j.protocol.Web3jService;
 import org.web3j.protocol.core.Request;
 import org.web3j.protocol.core.Response;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-public class EthRawRequestFactory {
+public class CustomRequestFactory {
+  private final Web3jService web3jService;
 
-  public static class TransactionReceiptRaw extends TransactionReceipt {
+  public static class NetServicesResponse extends Response<Map<String, Map<String, String>>> {}
+
+  public static class TransactionReceiptWithRevertReason extends TransactionReceipt {
     private String revertReason;
 
-    public TransactionReceiptRaw() {}
+    public TransactionReceiptWithRevertReason() {}
 
     public void setRevertReason(final String revertReason) {
       this.revertReason = revertReason;
@@ -35,20 +39,24 @@ public class EthRawRequestFactory {
     }
   }
 
-  public static class EthGetTransactionReceiptRawResponse extends Response<TransactionReceiptRaw> {}
+  public static class EthGetTransactionReceiptWithRevertReasonResponse
+      extends Response<TransactionReceiptWithRevertReason> {}
 
-  private final Web3jService web3jService;
-
-  public EthRawRequestFactory(final Web3jService web3jService) {
+  public CustomRequestFactory(final Web3jService web3jService) {
     this.web3jService = web3jService;
   }
 
-  public Request<?, EthGetTransactionReceiptRawResponse> ethGetTransactionReceiptRaw(
-      final String transactionHash) {
+  public Request<?, NetServicesResponse> netServices() {
+    return new Request<>(
+        "net_services", Collections.emptyList(), web3jService, NetServicesResponse.class);
+  }
+
+  public Request<?, EthGetTransactionReceiptWithRevertReasonResponse>
+      ethGetTransactionReceiptWithRevertReason(final String transactionHash) {
     return new Request<>(
         "eth_getTransactionReceipt",
         Collections.singletonList(transactionHash),
         web3jService,
-        EthGetTransactionReceiptRawResponse.class);
+        EthGetTransactionReceiptWithRevertReasonResponse.class);
   }
 }

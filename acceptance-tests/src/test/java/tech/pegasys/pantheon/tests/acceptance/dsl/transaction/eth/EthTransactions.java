@@ -47,8 +47,7 @@ public class EthTransactions {
     return new EthGetTransactionReceiptTransaction(transactionHash);
   }
 
-  public EthSendRawTransactionTransaction sendRawTransactionTransaction(
-      final String transactionData) {
+  public EthSendRawTransactionTransaction sendRawTransaction(final String transactionData) {
     return new EthSendRawTransactionTransaction(transactionData);
   }
 
@@ -56,8 +55,8 @@ public class EthTransactions {
     return new EthGetTransactionCountTransaction(accountAddress);
   }
 
-  public EthGetTransactionReceiptRaw getTransactionReceiptRawResponseTransaction(
+  public EthGetTransactionReceiptWithRevertReason getTransactionReceiptWithRevertReason(
       final String transactionHash) {
-    return new EthGetTransactionReceiptRaw(transactionHash);
+    return new EthGetTransactionReceiptWithRevertReason(transactionHash);
   }
 }

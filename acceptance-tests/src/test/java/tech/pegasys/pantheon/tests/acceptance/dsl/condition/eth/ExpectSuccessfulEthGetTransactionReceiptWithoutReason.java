@@ -17,15 +17,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import tech.pegasys.pantheon.tests.acceptance.dsl.WaitUtils;
 import tech.pegasys.pantheon.tests.acceptance.dsl.condition.Condition;
 import tech.pegasys.pantheon.tests.acceptance.dsl.node.Node;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptRaw;
-import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthRawRequestFactory.TransactionReceiptRaw;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.eth.EthGetTransactionReceiptWithRevertReason;
+import tech.pegasys.pantheon.tests.acceptance.dsl.transaction.net.CustomRequestFactory.TransactionReceiptWithRevertReason;
 
 public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Condition {
 
-  private final EthGetTransactionReceiptRaw transaction;
+  private final EthGetTransactionReceiptWithRevertReason transaction;
 
   public ExpectSuccessfulEthGetTransactionReceiptWithoutReason(
-      final EthGetTransactionReceiptRaw transaction) {
+      final EthGetTransactionReceiptWithRevertReason transaction) {
     this.transaction = transaction;
   }
 
@@ -36,7 +36,7 @@ public class ExpectSuccessfulEthGetTransactionReceiptWithoutReason implements Co
 
   private boolean revertReasonIsEmpty(final Node node) {
     return node.execute(transaction)
-        .map(TransactionReceiptRaw::getRevertReason)
+        .map(TransactionReceiptWithRevertReason::getRevertReason)
         .filter(String::isEmpty)
         .isPresent();
   }

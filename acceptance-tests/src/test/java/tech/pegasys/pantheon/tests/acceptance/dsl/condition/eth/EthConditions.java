@@ -48,17 +48,17 @@ public class EthConditions {
   public Condition sendRawTransactionExceptional(
       final String transactionData, final String expectedMessage) {
     return new ExpectEthSendRawTransactionException(
-        transactions.sendRawTransactionTransaction(transactionData), expectedMessage);
+        transactions.sendRawTransaction(transactionData), expectedMessage);
   }
 
   public Condition expectSuccessfulTransactionReceiptWithReason(
       final String transactionHash, final String revertReason) {
     return new ExpectSuccessfulEthGetTransactionReceiptWithReason(
-        transactions.getTransactionReceiptRawResponseTransaction(transactionHash), revertReason);
+        transactions.getTransactionReceiptWithRevertReason(transactionHash), revertReason);
   }
 
   public Condition expectSuccessfulTransactionReceiptWithoutReason(final String transactionHash) {
     return new ExpectSuccessfulEthGetTransactionReceiptWithoutReason(
-        transactions.getTransactionReceiptRawResponseTransaction(transactionHash));
+        transactions.getTransactionReceiptWithRevertReason(transactionHash));
   }
 }
